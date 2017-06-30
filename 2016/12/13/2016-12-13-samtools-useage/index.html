@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+
+    <!--[if lt IE 9]>
+        <style>body {display: none; background: none !important} </style>
+        <meta http-equiv="Refresh" Content="0; url=//outdatedbrowser.com/" />
+    <![endif]-->
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="format-detection" content="telephone=no" />
+<meta name="author" content="Mao Yibo" />
+
+
+
+<meta name="description" content="前言samtools 是一个操作sam/bam文件的软件包，其最新的1.3版本和经典的0.1.19版本软件参数不同，使用前需注意使用的软件版本。注：本文使用的samtools版本是 0.1.19-44428cd，定义命令为samtools19，其中附带的bcftools版本是 0.1.19-44428cd，定义命令为bcftools19，vcfutils命令定义为vcfutils19。使用的文件是">
+<meta name="keywords" content="NGS,Manual,Commands,SNP,SNV">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用samtools发现SNPs">
+<meta property="og:url" content="http://maoyibo.tk/2016/12/13/2016-12-13-samtools-useage/index.html">
+<meta property="og:site_name" content="Mao Yibo&#39;s Blog">
+<meta property="og:description" content="前言samtools 是一个操作sam/bam文件的软件包，其最新的1.3版本和经典的0.1.19版本软件参数不同，使用前需注意使用的软件版本。注：本文使用的samtools版本是 0.1.19-44428cd，定义命令为samtools19，其中附带的bcftools版本是 0.1.19-44428cd，定义命令为bcftools19，vcfutils命令定义为vcfutils19。使用的文件是">
+<meta property="og:updated_time" content="2017-06-30T13:10:02.885Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="使用samtools发现SNPs">
+<meta name="twitter:description" content="前言samtools 是一个操作sam/bam文件的软件包，其最新的1.3版本和经典的0.1.19版本软件参数不同，使用前需注意使用的软件版本。注：本文使用的samtools版本是 0.1.19-44428cd，定义命令为samtools19，其中附带的bcftools版本是 0.1.19-44428cd，定义命令为bcftools19，vcfutils命令定义为vcfutils19。使用的文件是">
+
+<link rel="apple-touch-icon" href= "/apple-touch-icon.png">
+
+
+    <link rel="alternate" href="/atom.xml" title="Mao Yibo&#39;s Blog" type="application/atom+xml">
+
+
+
+    <link rel="shortcut icon" href="/favicon.png">
+
+
+
+    <link href="//cdn.bootcss.com/animate.css/3.5.1/animate.min.css" rel="stylesheet">
+
+
+
+    <link href="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet">
+
+
+
+    <script src="//cdn.bootcss.com/pace/1.0.2/pace.min.js"></script>
+    <link href="//cdn.bootcss.com/pace/1.0.2/themes/blue/pace-theme-minimal.css" rel="stylesheet">
+
+
+<link rel="stylesheet" href="/css/style.css">
+
+
+
+<link href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">
+
+
+<title>使用samtools发现SNPs | Mao Yibo&#39;s Blog</title>
+
+<script src="//cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+<script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
+
+<script>
+    var yiliaConfig = {
+        fancybox: true,
+        animate: true,
+        isHome: false,
+        isPost: true,
+        isArchive: false,
+        isTag: false,
+        isCategory: false,
+        fancybox_js: "//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.js",
+        scrollreveal: "//cdn.bootcss.com/scrollReveal.js/3.1.4/scrollreveal.min.js",
+        search: true
+    }
+</script>
+
+
+    <script>
+        yiliaConfig.jquery_ui = [true, "//cdn.bootcss.com/jqueryui/1.10.4/jquery-ui.min.js", "//cdn.bootcss.com/jqueryui/1.10.4/css/jquery-ui.min.css"];
+    </script>
+
+
+
+    <script> yiliaConfig.rootUrl = "\/";</script>
+
+
+
+
+
+
+</head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+    <header id="header" class="inner">
+        <a href="/" class="profilepic">
+            <img src="/img/avatar.png" class="animated zoomIn">
+        </a>
+        <hgroup>
+          <h1 class="header-author"><a href="/">Mao Yibo</a></h1>
+        </hgroup>
+
+        
+        <p class="header-subtitle">A Notebook for Linux and Bioinformatics.</p>
+        
+
+        
+            <form id="search-form">
+            <input type="text" id="local-search-input" name="q" placeholder="search..." class="search form-control" autocomplete="off" autocorrect="off" searchonload="false" />
+            <i class="fa fa-times" onclick="resetSearch()"></i>
+            </form>
+            <div id="local-search-result"></div>
+            <p class='no-result'>No results found <i class='fa fa-spinner fa-pulse'></i></p>
+        
+
+
+        
+            <div id="switch-btn" class="switch-btn">
+                <div class="icon">
+                    <div class="icon-ctn">
+                        <div class="icon-wrap icon-house" data-idx="0">
+                            <div class="birdhouse"></div>
+                            <div class="birdhouse_holes"></div>
+                        </div>
+                        <div class="icon-wrap icon-ribbon hide" data-idx="1">
+                            <div class="ribbon"></div>
+                        </div>
+                        
+                        <div class="icon-wrap icon-link hide" data-idx="2">
+                            <div class="loopback_l"></div>
+                            <div class="loopback_r"></div>
+                        </div>
+                        
+                        
+                        <div class="icon-wrap icon-me hide" data-idx="3">
+                            <div class="user"></div>
+                            <div class="shoulder"></div>
+                        </div>
+                        
+                    </div>
+                    
+                </div>
+                <div class="tips-box hide">
+                    <div class="tips-arrow"></div>
+                    <ul class="tips-inner">
+                        <li>菜单</li>
+                        <li>标签</li>
+                        
+                        <li>友情链接</li>
+                        
+                        
+                        <li>关于我</li>
+                        
+                    </ul>
+                </div>
+            </div>
+        
+
+        <div id="switch-area" class="switch-area">
+            <div class="switch-wrap">
+                <section class="switch-part switch-part1">
+                    <nav class="header-menu">
+                        <ul>
+                        
+                            <li><a href="/">主页</a></li>
+                        
+                            <li><a href="/archives/">所有文章</a></li>
+                        
+                            <li><a href="/tags/">标签云</a></li>
+                        
+                            <li><a href="/about/">关于我</a></li>
+                        
+                        </ul>
+                    </nav>
+                    <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa Email" href="mailto:&#109;&#97;&#111;&#121;&#105;&#98;&#111;&#64;&#103;&#109;&#97;&#105;&#108;&#46;&#99;&#111;&#109;" title="Email"></a>
+                            
+                                <a class="fa GitHub" href="https://github.com/maoyibo" title="GitHub"></a>
+                            
+                                <a class="fa RSS" href="/atom.xml" title="RSS"></a>
+                            
+                        </ul>
+                    </nav>
+                </section>
+                
+                
+                <section class="switch-part switch-part2">
+                    <div class="widget tagcloud" id="js-tagcloud">
+                        <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Commands/">Commands</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Concepts/">Concepts</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Database/">Database</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Format/">Format</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Installation/">Installation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Manual/">Manual</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mapper/">Mapper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/">MySQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NGS/">NGS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RNASeq/">RNASeq</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SAM/">SAM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SNP/">SNP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SNV/">SNV</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Script/">Script</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Terminologies/">Terminologies</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ubuntu/">Ubuntu</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Unfinished/">Unfinished</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/VCF/">VCF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/机器学习基石/">机器学习基石</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/笔记/">笔记</a></li></ul>
+                    </div>
+                </section>
+                
+                
+                
+                <section class="switch-part switch-part3">
+                    <div id="js-friends">
+                    
+                      <a class="main-nav-link switch-friends-link" href="https://hexo.io">Hexo</a>
+                    
+                      <a class="main-nav-link switch-friends-link" href="https://pages.github.com/">GitHub</a>
+                    
+                      <a class="main-nav-link switch-friends-link" href="http://moxfive.xyz/">MOxFIVE</a>
+                    
+                    </div>
+                </section>
+                
+
+                
+                
+                <section class="switch-part switch-part4">
+                
+                    <div id="js-aboutme">Linux and Bioinformatics</div>
+                </section>
+                
+            </div>
+        </div>
+    </header>                
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+      <div class="overlay">
+          <div class="slider-trigger"></div>
+          <h1 class="header-author js-mobile-header hide"><a href="/" title="回到主页">Mao Yibo</a></h1>
+      </div>
+    <div class="intrude-less">
+        <header id="header" class="inner">
+            <a href="/" class="profilepic">
+                <img src="/img/avatar.png" class="animated zoomIn">
+            </a>
+            <hgroup>
+              <h1 class="header-author"><a href="/" title="回到主页">Mao Yibo</a></h1>
+            </hgroup>
+            
+            <p class="header-subtitle">A Notebook for Linux and Bioinformatics.</p>
+            
+            <nav class="header-menu">
+                <ul>
+                
+                    <li><a href="/">主页</a></li>
+                
+                    <li><a href="/archives/">所有文章</a></li>
+                
+                    <li><a href="/tags/">标签云</a></li>
+                
+                    <li><a href="/about/">关于我</a></li>
+                
+                <div class="clearfix"></div>
+                </ul>
+            </nav>
+            <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa Email" target="_blank" href="mailto:&#109;&#97;&#111;&#121;&#105;&#98;&#111;&#64;&#103;&#109;&#97;&#105;&#108;&#46;&#99;&#111;&#109;" title="Email"></a>
+                            
+                                <a class="fa GitHub" target="_blank" href="https://github.com/maoyibo" title="GitHub"></a>
+                            
+                                <a class="fa RSS" target="_blank" href="/atom.xml" title="RSS"></a>
+                            
+                        </ul>
+            </nav>
+        </header>                
+    </div>
+    <link class="menu-list" tags="标签" friends="友情链接" about="关于我"/>
+</nav>
+      <div class="body-wrap"><article id="post-2016-12-13-samtools-useage" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2016/12/13/2016-12-13-samtools-useage/" class="article-date">
+      <time datetime="2016-12-13T04:29:23.000Z" itemprop="datePublished">2016-12-13</time>
+</a>
+
+
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      使用samtools发现SNPs
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+
+        
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Commands/">Commands</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Manual/">Manual</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/NGS/">NGS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SNP/">SNP</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SNV/">SNV</a></li></ul>
+    </div>
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>samtools 是一个操作sam/bam文件的软件包，其最新的1.3版本和经典的0.1.19版本软件参数不同，使用前需注意使用的软件版本。<br>注：本文使用的samtools版本是 0.1.19-44428cd，定义命令为samtools19，其中附带的bcftools版本是 0.1.19-44428cd，定义命令为bcftools19，vcfutils命令定义为vcfutils19。<br>使用的文件是“使用 bwa 将 reads 比对到参考基因组”例子中产生的paired-end.sam文件。</p>
+<a id="more"></a>  
+<h2 id="使用samtools-faidx-对参考序列进行索引"><a href="#使用samtools-faidx-对参考序列进行索引" class="headerlink" title="使用samtools faidx 对参考序列进行索引"></a>使用samtools faidx 对参考序列进行索引</h2><p>samtools faidx 参数<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">$ samtools19 faidx</div><div class="line">        Usage: faidx &lt;in.fasta&gt; [&lt;reg&gt; [...]]</div></pre></td></tr></table></figure></p>
+<p>本例使用命令：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ samtools19 faidx ecoli.fa</div></pre></td></tr></table></figure></p>
+<p>输出结果： ecoli.fa.fai</p>
+<h2 id="使用samtools-view-将sam格式的结果转为bam格式"><a href="#使用samtools-view-将sam格式的结果转为bam格式" class="headerlink" title="使用samtools view 将sam格式的结果转为bam格式"></a>使用samtools view 将sam格式的结果转为bam格式</h2><p> samtools view 参数：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line">$ samtools19 view</div><div class="line">Usage:   samtools view [options] &lt;in.bam&gt;|&lt;in.sam&gt; [region1 [...]]</div><div class="line">Options: </div><div class="line">         -b             output BAM</div><div class="line">                    <span class="comment">#输出BAM</span></div><div class="line">         -h             <span class="built_in">print</span> header <span class="keyword">for</span> the SAM output</div><div class="line">         -H             <span class="built_in">print</span> header only (no alignments)</div><div class="line">         -S             input is SAM</div><div class="line">                    <span class="comment">#输入SAM</span></div><div class="line">         -u             uncompressed BAM output (force -b)</div><div class="line">         -1             fast compression (force -b)</div><div class="line">         -x             output FLAG <span class="keyword">in</span> HEX (samtools-C specific)</div><div class="line">         -X             output FLAG <span class="keyword">in</span> string (samtools-C specific)</div><div class="line">         -c             <span class="built_in">print</span> only the count of matching records</div><div class="line">         -B             collapse the backward CIGAR operation</div><div class="line">         -@ INT     number of BAM compression threads [0]</div><div class="line">         -L FILE        output alignments overlapping the input BED FILE [null]</div><div class="line">         -t FILE        list of reference names and lengths (force -S) [null]</div><div class="line">         -T FILE        reference sequence file (force -S) [null]</div><div class="line">         -o FILE        output file name [stdout]</div><div class="line">                        <span class="comment">#指定输出文件名而不是标准输出</span></div><div class="line">         -R FILE        list of <span class="built_in">read</span> groups to be outputted [null]</div><div class="line">         -f INT         required flag, 0 <span class="keyword">for</span> <span class="built_in">unset</span> [0]</div><div class="line">         -F INT         filtering flag, 0 <span class="keyword">for</span> <span class="built_in">unset</span> [0]</div><div class="line">         -q INT         minimum mapping quality [0]</div><div class="line">         -l STR         only output reads <span class="keyword">in</span> library STR [null]</div><div class="line">         -r STR         only output reads <span class="keyword">in</span> <span class="built_in">read</span> group STR [null]</div><div class="line">         -s FLOAT     fraction of templates to subsample; <span class="built_in">integer</span> part as seed [-1]</div><div class="line">         -?                 longer <span class="built_in">help</span></div></pre></td></tr></table></figure></p>
+<p>本例使用命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ samtools19 view -b -S -o paired-end.bam paired-end.sam</div></pre></td></tr></table></figure>
+<h2 id="使用-samtools-sort-对bam结果进行排序"><a href="#使用-samtools-sort-对bam结果进行排序" class="headerlink" title="使用 samtools sort 对bam结果进行排序"></a>使用 samtools sort 对bam结果进行排序</h2><p>samtools sort参数：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="variable">$samtools19</span> sort</div><div class="line">Usage:   samtools sort [options] &lt;in.bam&gt; &lt;out.prefix&gt;</div><div class="line">Options: </div><div class="line">         -n            sort by <span class="built_in">read</span> name</div><div class="line">         -f             use &lt;out.prefix&gt; as full file name instead of prefix</div><div class="line">         -o            final output to stdout</div><div class="line">         -l INT      compression level, from 0 to 9 [-1]</div><div class="line">         -@ INT    number of sorting and compression threads [1]</div><div class="line">         -m INT    max memory per thread; suffix K/M/G recognized [768M]</div></pre></td></tr></table></figure></p>
+<p>本例使用命令<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ samtools19 sort paired-end.bam paired-end.sorted</div></pre></td></tr></table></figure></p>
+<h2 id="使用-samtools-index-对排序后的bam文件建立索引"><a href="#使用-samtools-index-对排序后的bam文件建立索引" class="headerlink" title="使用 samtools index 对排序后的bam文件建立索引"></a>使用 samtools index 对排序后的bam文件建立索引</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="variable">$samtools19</span> index</div><div class="line">Usage: samtools index &lt;in.bam&gt; [out.index]</div></pre></td></tr></table></figure>
+<p>本例命令<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ samtools19 index paired-end.sorted.bam</div></pre></td></tr></table></figure></p>
+<h2 id="使用-samtools-mpileup-结合-bcftools-view-生成二进制bcf-格式文件"><a href="#使用-samtools-mpileup-结合-bcftools-view-生成二进制bcf-格式文件" class="headerlink" title="使用 samtools mpileup 结合 bcftools view 生成二进制bcf 格式文件"></a>使用 samtools mpileup 结合 bcftools view 生成二进制bcf 格式文件</h2><p><strong>samtools mpileup 参数</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div></pre></td><td class="code"><pre><div class="line">$ samtools19 mpileup</div><div class="line"></div><div class="line">Usage: samtools mpileup [options] in1.bam [in2.bam [...]]</div><div class="line"></div><div class="line">Input options:</div><div class="line">  -6, --illumina1.3+      quality is <span class="keyword">in</span> the Illumina-1.3+ encoding</div><div class="line">  -A, --count-orphans     <span class="keyword">do</span> not discard anomalous <span class="built_in">read</span> pairs</div><div class="line">  -b, --bam-list FILE     list of input BAM filenames, one per line</div><div class="line">  -B, --no-BAQ            <span class="built_in">disable</span> BAQ (per-Base Alignment Quality)</div><div class="line">  -C, --adjust-MQ INT     adjust mapping quality; recommended:50, <span class="built_in">disable</span>:0 [0]</div><div class="line">                    <span class="comment">#调整mapping质量，推荐50,0为关闭</span></div><div class="line">  -d, --max-depth INT     max per-BAM depth; avoids excessive memory usage [250]</div><div class="line">  -E, --redo-BAQ          recalculate BAQ on the fly, ignore existing BQs</div><div class="line">  -f, --fasta-ref FILE    faidx indexed reference sequence file</div><div class="line">                    <span class="comment">#faidx 索引过的参考序列</span></div><div class="line">  -G, --exclude-RG FILE   exclude <span class="built_in">read</span> groups listed <span class="keyword">in</span> FILE</div><div class="line">  -l, --positions FILE    skip unlisted positions (chr pos) or regions (BED)</div><div class="line">  -q, --min-MQ INT        skip alignments with mapQ smaller than INT [0]</div><div class="line">  -Q, --min-BQ INT        skip bases with baseQ/BAQ smaller than INT [13]</div><div class="line">  -r, --region REG        region <span class="keyword">in</span> <span class="built_in">which</span> pileup is generated</div><div class="line">  -R, --ignore-RG         ignore RG tags (one BAM = one sample)</div><div class="line">  --rf, --incl-flags STR|INT  required flags: skip reads with mask bits <span class="built_in">unset</span> []</div><div class="line">  --ff, --excl-flags STR|INT  filter flags: skip reads with mask bits <span class="built_in">set</span></div><div class="line">                                            [UNMAP,SECONDARY,QCFAIL,DUP]</div><div class="line">  -x, --ignore-overlaps   <span class="built_in">disable</span> <span class="built_in">read</span>-pair overlap detection</div><div class="line"></div><div class="line">Output options:</div><div class="line">  -o, --output FILE       write output to FILE [standard output]</div><div class="line">  -g, --BCF               generate genotype likelihoods <span class="keyword">in</span> BCF format</div><div class="line">                    <span class="comment">#使用BCF格式产生基因型可能性</span></div><div class="line">  -v, --VCF               generate genotype likelihoods <span class="keyword">in</span> VCF format</div><div class="line">                    <span class="comment">#使用VCF格式产生基因型可能性</span></div><div class="line"></div><div class="line">Output options <span class="keyword">for</span> mpileup format (without -g/-v):</div><div class="line">  -O, --output-BP         output base positions on reads</div><div class="line">  -s, --output-MQ         output mapping quality</div><div class="line"></div><div class="line">Output options <span class="keyword">for</span> genotype likelihoods (when -g/-v is used):</div><div class="line">  -t, --output-tags LIST  optional tags to output: DP,DPR,DV,DP4,INFO/DPR,SP []</div><div class="line">  -u, --uncompressed      generate uncompressed VCF/BCF output</div><div class="line">                    <span class="comment">#产生非压缩的VCF/BCF 输出</span></div><div class="line"></div><div class="line">SNP/INDEL genotype likelihoods options (effective with -g/-v):</div><div class="line">  -e, --ext-prob INT      Phred-scaled gap extension seq error probability [20]</div><div class="line">  -F, --gap-frac FLOAT    minimum fraction of gapped reads [0.002]</div><div class="line">  -h, --tandem-qual INT   coefficient <span class="keyword">for</span> homopolymer errors [100]</div><div class="line">  -I, --skip-indels       <span class="keyword">do</span> not perform indel calling</div><div class="line">  -L, --max-idepth INT    maximum per-sample depth <span class="keyword">for</span> INDEL calling [250]</div><div class="line">  -m, --min-ireads INT    minimum number gapped reads <span class="keyword">for</span> indel candidates [1]</div><div class="line">  -o, --open-prob INT     Phred-scaled gap open seq error probability [40]</div><div class="line">  -p, --per-sample-mF     apply -m and -F per-sample <span class="keyword">for</span> increased sensitivity</div><div class="line">  -P, --platforms STR     comma separated list of platforms <span class="keyword">for</span> indels [all]</div><div class="line"></div><div class="line">Notes: Assuming diploid individuals.</div></pre></td></tr></table></figure>
+<p> <strong>bcftools view参数</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div></pre></td><td class="code"><pre><div class="line">$ bcftools19 view</div><div class="line"></div><div class="line">Usage: bcftools view [options] &lt;in.bcf&gt; [reg]</div><div class="line"></div><div class="line">Input/output options:</div><div class="line"></div><div class="line">       -A        keep all possible alternate alleles at variant sites</div><div class="line">       -b        output BCF instead of VCF</div><div class="line">       -D FILE   sequence dictionary <span class="keyword">for</span> VCF-&gt;BCF conversion [null]</div><div class="line">       -F        PL generated by r921 or before (<span class="built_in">which</span> generate old ordering)</div><div class="line">       -G        suppress all individual genotype information</div><div class="line">       -l FILE   list of sites (chr pos) or regions (BED) to output [all sites]</div><div class="line">       -L        calculate LD <span class="keyword">for</span> adjacent sites</div><div class="line">       -N        skip sites <span class="built_in">where</span> REF is not A/C/G/T</div><div class="line">       -Q        output the QCALL likelihood format</div><div class="line">       -s FILE   list of samples to use [all samples]</div><div class="line">       -S        input is VCF</div><div class="line">       -u        uncompressed BCF output (force -b)</div><div class="line"></div><div class="line">Consensus/variant calling options:</div><div class="line"></div><div class="line">       -c        SNP calling (force -e)</div><div class="line">       -d FLOAT  skip loci <span class="built_in">where</span> less than FLOAT fraction of samples covered [0]</div><div class="line">       -e        likelihood based analyses</div><div class="line">       -g        call genotypes at variant sites (force -c)</div><div class="line">       -i FLOAT  indel-to-substitution ratio [-1]</div><div class="line">       -I        skip indels</div><div class="line">       -m FLOAT  alternative model <span class="keyword">for</span> multiallelic and rare-variant calling, include <span class="keyword">if</span> P(chi^2)&gt;=FLOAT</div><div class="line">       -p FLOAT  variant <span class="keyword">if</span> P(ref|D)&lt;FLOAT [0.5]</div><div class="line">       -P STR    <span class="built_in">type</span> of prior: full, cond2, flat [full]</div><div class="line">       -t FLOAT  scaled substitution mutation rate [0.001]</div><div class="line">       -T STR    constrained calling; STR can be: pair, trioauto, trioxd and trioxs (see manual) [null]</div><div class="line">       -v        output potential variant sites only (force -c)</div><div class="line"></div><div class="line">Contrast calling and association <span class="built_in">test</span> options:</div><div class="line"></div><div class="line">       -1 INT    number of group-1 samples [0]</div><div class="line">       -C FLOAT  posterior constrast <span class="keyword">for</span> LRT&lt;FLOAT and P(ref|D)&lt;0.5 [1]</div><div class="line">       -U INT    number of permutations <span class="keyword">for</span> association testing (effective with -1) [0]</div><div class="line">       -X FLOAT  only perform permutations <span class="keyword">for</span> P(chi^2)&lt;FLOAT [0.01]</div></pre></td></tr></table></figure>
+<p>本例使用参数：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ samtools19 mpileup -u -f ecoli.fa paired-end.sorted.bam |bcftools19 view -bvcg - &gt; paired-end.sorted.raw.bcf</div></pre></td></tr></table></figure></p>
+<p>##使用 bcftools view 结合 vcfutils 转换并生成 vcf 结果。</p>
+<p>vcfutils<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">$ $ vcfutils19  varFilter</div><div class="line">Usage:   vcfutils.pl varFilter [options] &lt;in.vcf&gt;</div><div class="line">Options: -Q INT    minimum RMS mapping quality <span class="keyword">for</span> SNPs [10]</div><div class="line">         -d INT    minimum <span class="built_in">read</span> depth [2]</div><div class="line">         -D INT    maximum <span class="built_in">read</span> depth [10000000]</div><div class="line">         -a INT    minimum number of alternate bases [2]</div><div class="line">         -w INT    SNP within INT bp around a gap to be filtered [3]</div><div class="line">         -W INT    window size <span class="keyword">for</span> filtering adjacent gaps [10]</div><div class="line">         -1 FLOAT  min P-value <span class="keyword">for</span> strand bias (given PV4) [0.0001]</div><div class="line">         -2 FLOAT  min P-value <span class="keyword">for</span> baseQ bias [1e-100]</div><div class="line">         -3 FLOAT  min P-value <span class="keyword">for</span> mapQ bias [0]</div><div class="line">         -4 FLOAT  min P-value <span class="keyword">for</span> end distance bias [0.0001]</div><div class="line">		 -e FLOAT  min P-value <span class="keyword">for</span> HWE (plus F&lt;0) [0.0001]</div><div class="line">         -p        <span class="built_in">print</span> filtered variants</div><div class="line"></div><div class="line">Note: Some of the filters rely on annotations generated by SAMtools/BCFtools.</div></pre></td></tr></table></figure></p>
+<p>本例使用命令：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">bcftools19 view paired-end.sorted.raw.bcf | vcfutils19 varFilter -D 200 &gt;paired-end.sorted.flt.vcf</div></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    
+  </div>
+  
+    
+    <div class="copyright">
+        <p><span>本文标题:</span><a href="/2016/12/13/2016-12-13-samtools-useage/">使用samtools发现SNPs</a></p>
+        <p><span>文章作者:</span><a href="/" title="回到主页">Mao Yibo</a></p>
+        <p><span>发布时间:</span>2016-12-13, 12:29:23</p>
+        <p><span>最后更新:</span>2017-06-30, 21:10:02</p>
+        <p>
+            <span>原始链接:</span><a class="post-url" href="/2016/12/13/2016-12-13-samtools-useage/" title="使用samtools发现SNPs">http://maoyibo.tk/2016/12/13/2016-12-13-samtools-useage/</a>
+            <span class="copy-path" data-clipboard-text="原文: http://maoyibo.tk/2016/12/13/2016-12-13-samtools-useage/　　作者: Mao Yibo" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
+            <script> var clipboard = new Clipboard('.copy-path'); </script>
+        </p>
+        <p>
+            <span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/" title="CC BY-NC-SA 4.0 International" target = "_blank">"署名-非商用-相同方式共享 4.0"</a> 转载请保留原文链接及作者。
+        </p>
+    </div>
+
+
+
+    <nav id="article-nav">
+        
+            <div id="article-nav-newer" class="article-nav-title">
+                <a href="/2016/12/20/2016-12-20-NGS-Terminologies-and-Concepts/">
+                    NGS Terminologies and Concepts
+                </a>
+            </div>
+        
+        
+            <div id="article-nav-older" class="article-nav-title">
+                <a href="/2016/12/12/2016-12-12-bwa-useage/">
+                    使用 bwa 将 reads 比对到参考基因组
+                </a>
+            </div>
+        
+    </nav>
+
+  
+</article>
+
+    <div id="toc" class="toc-article">
+        <strong class="toc-title">文章目录</strong>
+        
+            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#前言"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#使用samtools-faidx-对参考序列进行索引"><span class="toc-number">2.</span> <span class="toc-text">使用samtools faidx 对参考序列进行索引</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#使用samtools-view-将sam格式的结果转为bam格式"><span class="toc-number">3.</span> <span class="toc-text">使用samtools view 将sam格式的结果转为bam格式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#使用-samtools-sort-对bam结果进行排序"><span class="toc-number">4.</span> <span class="toc-text">使用 samtools sort 对bam结果进行排序</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#使用-samtools-index-对排序后的bam文件建立索引"><span class="toc-number">5.</span> <span class="toc-text">使用 samtools index 对排序后的bam文件建立索引</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#使用-samtools-mpileup-结合-bcftools-view-生成二进制bcf-格式文件"><span class="toc-number">6.</span> <span class="toc-text">使用 samtools mpileup 结合 bcftools view 生成二进制bcf 格式文件</span></a></li></ol>
+        
+    </div>
+    <style>
+        .left-col .switch-btn,
+        .left-col .switch-area {
+            display: none;
+        }
+        .toc-level-3 i,
+        .toc-level-3 ol {
+            display: none !important;
+        }
+    </style>
+
+    <input type="button" id="tocButton" value="隐藏目录"  title="点击按钮隐藏或者显示文章目录">
+
+    <script>
+        yiliaConfig.toc = ["隐藏目录", "显示目录", !!"false"];
+    </script>
+
+
+
+    
+<div class="share">
+    
+        <div class="bdsharebuttonbox">
+            <a href="#" class="fa fa-twitter bds_twi" data-cmd="twi" title="分享到推特"></a>
+            <a href="#" class="fa fa-weibo bds_tsina" data-cmd="tsina" title="分享到新浪微博"></a>
+            <a href="#" class="fa fa-qq bds_sqq" data-cmd="sqq" title="分享给 QQ 好友"></a>
+            <a href="#" class="fa fa-files-o bds_copy" data-cmd="copy" title="复制网址"></a>
+            <a href="#" class="fa fa fa-envelope-o bds_mail" data-cmd="mail" title="通过邮件分享"></a>
+            <a href="#" class="fa fa-weixin bds_weixin" data-cmd="weixin" title="生成文章二维码"></a>
+            <a href="#" class="fa fa-share-alt bds_more" data-cmd="more"></i></a>
+        </div>
+        <script>
+            window._bd_share_config={
+                "common":{"bdSnsKey":{},"bdText":"使用samtools发现SNPs　| Mao Yibo's Blog　","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"24"},"share":{}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+        </script>
+    
+
+    
+</div>
+
+
+
+
+
+
+
+    
+
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/2016/12/20/2016-12-20-NGS-Terminologies-and-Concepts/" title="上一篇: NGS Terminologies and Concepts">
+                <i class="fa fa-angle-left"></i>
+            </a>
+        
+
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+
+        
+            <a href="/2016/12/12/2016-12-12-bwa-useage/" title="下一篇: 使用 bwa 将 reads 比对到参考基因组">
+                <i class="fa fa-angle-right"></i>
+            </a>
+        
+    </div>
+
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2016/12/28/2016-12-28-VCF-Format/">VCF 4.1版本 格式介绍</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/27/2016-12-27-ubuntu-mysql-install/">Ubuntu 安装 MySQL 简便方法</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/26/2016-12-26-tophat-useage/">TopHat使用方法</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/25/2016-12-25-SAM-Format/">SAM 格式介绍</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/24/2016-12-24-Bowtie2-useage/">使用 Bowtie2 将reads 比对到参考基因组</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/20/2016-12-20-NGS-Terminologies-and-Concepts/">NGS Terminologies and Concepts</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/13/2016-12-13-samtools-useage/">使用samtools发现SNPs</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/12/2016-12-12-bwa-useage/">使用 bwa 将 reads 比对到参考基因组</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/11/2016-12-11-MLF-1/">机器学习基石  第一节 The Learning Problem</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/10/2016-12-10-Ubuntu-Dependence-Installation/">Ubuntu Dependence Installation</a></li></ul>
+
+
+
+
+    <script>
+        
+    </script>
+</div>
+      <footer id="footer">
+    <div class="outer">
+        <div id="footer-info">
+            <div class="footer-left">
+                <i class="fa fa-copyright"></i> 
+                2016-2017 Mao Yibo
+            </div>
+            <div class="footer-right">
+                <a href="http://hexo.io/" target="_blank" title="快速、简洁且高效的博客框架">Hexo</a>  Theme <a href="https://github.com/MOxFIVE/hexo-theme-yelee" target="_blank" title="简而不减 Hexo 双栏博客主题  v3.5">Yelee</a> by MOxFIVE <i class="fa fa-heart animated infinite pulse"></i>
+            </div>
+        </div>
+        
+            <div class="visit">
+                
+                    <span id="busuanzi_container_site_pv" style='display:none'>
+                        <span id="site-visit" title="本站到访数"><i class="fa fa-user" aria-hidden="true"></i><span id="busuanzi_value_site_uv"></span>
+                        </span>
+                    </span>
+                
+                
+                    <span>| </span>
+                
+                
+                    <span id="busuanzi_container_page_pv" style='display:none'>
+                        <span id="page-visit"  title="本页阅读量"><i class="fa fa-eye animated infinite pulse" aria-hidden="true"></i><span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    </span>
+                
+            </div>
+        
+    </div>
+</footer>
+    </div>
+    
+<script data-main="/js/main.js" src="//cdn.bootcss.com/require.js/2.2.0/require.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var iPad = window.navigator.userAgent.indexOf('iPad');
+            if (iPad > -1 || $(".left-col").css("display") === "none") {
+                var bgColorList = ["#9db3f4", "#414141", "#e5a859", "#f5dfc6", "#c084a0", "#847e72", "#cd8390", "#996731"];
+                var bgColor = Math.ceil(Math.random() * (bgColorList.length - 1));
+                $("body").css({"background-color": bgColorList[bgColor], "background-size": "cover"});
+            }
+            else {
+                var backgroundnum = 5;
+                var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+                $("body").css({"background": backgroundimg, "background-attachment": "fixed", "background-size": "cover"});
+            }
+        })
+    </script>
+
+
+
+
+
+    <script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+    tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    }
+});
+
+MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for(i=0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';                 
+    }       
+});
+</script>
+
+<script src="//cdn.bootcss.com/mathjax/2.6.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<div class="scroll" id="scroll">
+    <a href="#" title="返回顶部"><i class="fa fa-arrow-up"></i></a>
+    <a href="#comments" onclick="load$hide();" title="查看评论"><i class="fa fa-comments-o"></i></a>
+    <a href="#footer" title="转到底部"><i class="fa fa-arrow-down"></i></a>
+</div>
+<script>
+    // Open in New Window
+    
+        var oOpenInNew = {
+            
+            
+            
+            
+            
+            
+             archives: ".archive-article-title", 
+             miniArchives: "a.post-list-link", 
+            
+             friends: "#js-friends a", 
+             socail: ".social a" 
+        }
+        for (var x in oOpenInNew) {
+            $(oOpenInNew[x]).attr("target", "_blank");
+        }
+    
+</script>
+
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+  </div>
+</body>
+</html>

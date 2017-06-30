@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+
+    <!--[if lt IE 9]>
+        <style>body {display: none; background: none !important} </style>
+        <meta http-equiv="Refresh" Content="0; url=//outdatedbrowser.com/" />
+    <![endif]-->
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="format-detection" content="telephone=no" />
+<meta name="author" content="Mao Yibo" />
+
+
+
+<meta name="description" content="注：本例使用的bowtie2 版本为：version 2.2.6bowtie2的使用需要两种输入文件：Reference genome data (fasta格式 .fa, .fasta, .fna)本文使用的例子是Escherichia coli 参考基因组（gi|15829254|ref|NC_002695.1| Escherichia coli O157:H7 str. Sakai chro">
+<meta name="keywords" content="NGS,Mapper,Manual,Commands">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用 Bowtie2 将reads 比对到参考基因组">
+<meta property="og:url" content="http://maoyibo.tk/2016/12/24/2016-12-24-Bowtie2-useage/index.html">
+<meta property="og:site_name" content="Mao Yibo&#39;s Blog">
+<meta property="og:description" content="注：本例使用的bowtie2 版本为：version 2.2.6bowtie2的使用需要两种输入文件：Reference genome data (fasta格式 .fa, .fasta, .fna)本文使用的例子是Escherichia coli 参考基因组（gi|15829254|ref|NC_002695.1| Escherichia coli O157:H7 str. Sakai chro">
+<meta property="og:updated_time" content="2017-06-30T13:10:12.601Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="使用 Bowtie2 将reads 比对到参考基因组">
+<meta name="twitter:description" content="注：本例使用的bowtie2 版本为：version 2.2.6bowtie2的使用需要两种输入文件：Reference genome data (fasta格式 .fa, .fasta, .fna)本文使用的例子是Escherichia coli 参考基因组（gi|15829254|ref|NC_002695.1| Escherichia coli O157:H7 str. Sakai chro">
+
+<link rel="apple-touch-icon" href= "/apple-touch-icon.png">
+
+
+    <link rel="alternate" href="/atom.xml" title="Mao Yibo&#39;s Blog" type="application/atom+xml">
+
+
+
+    <link rel="shortcut icon" href="/favicon.png">
+
+
+
+    <link href="//cdn.bootcss.com/animate.css/3.5.1/animate.min.css" rel="stylesheet">
+
+
+
+    <link href="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet">
+
+
+
+    <script src="//cdn.bootcss.com/pace/1.0.2/pace.min.js"></script>
+    <link href="//cdn.bootcss.com/pace/1.0.2/themes/blue/pace-theme-minimal.css" rel="stylesheet">
+
+
+<link rel="stylesheet" href="/css/style.css">
+
+
+
+<link href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">
+
+
+<title>使用 Bowtie2 将reads 比对到参考基因组 | Mao Yibo&#39;s Blog</title>
+
+<script src="//cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+<script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
+
+<script>
+    var yiliaConfig = {
+        fancybox: true,
+        animate: true,
+        isHome: false,
+        isPost: true,
+        isArchive: false,
+        isTag: false,
+        isCategory: false,
+        fancybox_js: "//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.js",
+        scrollreveal: "//cdn.bootcss.com/scrollReveal.js/3.1.4/scrollreveal.min.js",
+        search: true
+    }
+</script>
+
+
+    <script>
+        yiliaConfig.jquery_ui = [true, "//cdn.bootcss.com/jqueryui/1.10.4/jquery-ui.min.js", "//cdn.bootcss.com/jqueryui/1.10.4/css/jquery-ui.min.css"];
+    </script>
+
+
+
+    <script> yiliaConfig.rootUrl = "\/";</script>
+
+
+
+
+
+
+</head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+    <header id="header" class="inner">
+        <a href="/" class="profilepic">
+            <img src="/img/avatar.png" class="animated zoomIn">
+        </a>
+        <hgroup>
+          <h1 class="header-author"><a href="/">Mao Yibo</a></h1>
+        </hgroup>
+
+        
+        <p class="header-subtitle">A Notebook for Linux and Bioinformatics.</p>
+        
+
+        
+            <form id="search-form">
+            <input type="text" id="local-search-input" name="q" placeholder="search..." class="search form-control" autocomplete="off" autocorrect="off" searchonload="false" />
+            <i class="fa fa-times" onclick="resetSearch()"></i>
+            </form>
+            <div id="local-search-result"></div>
+            <p class='no-result'>No results found <i class='fa fa-spinner fa-pulse'></i></p>
+        
+
+
+        
+            <div id="switch-btn" class="switch-btn">
+                <div class="icon">
+                    <div class="icon-ctn">
+                        <div class="icon-wrap icon-house" data-idx="0">
+                            <div class="birdhouse"></div>
+                            <div class="birdhouse_holes"></div>
+                        </div>
+                        <div class="icon-wrap icon-ribbon hide" data-idx="1">
+                            <div class="ribbon"></div>
+                        </div>
+                        
+                        <div class="icon-wrap icon-link hide" data-idx="2">
+                            <div class="loopback_l"></div>
+                            <div class="loopback_r"></div>
+                        </div>
+                        
+                        
+                        <div class="icon-wrap icon-me hide" data-idx="3">
+                            <div class="user"></div>
+                            <div class="shoulder"></div>
+                        </div>
+                        
+                    </div>
+                    
+                </div>
+                <div class="tips-box hide">
+                    <div class="tips-arrow"></div>
+                    <ul class="tips-inner">
+                        <li>菜单</li>
+                        <li>标签</li>
+                        
+                        <li>友情链接</li>
+                        
+                        
+                        <li>关于我</li>
+                        
+                    </ul>
+                </div>
+            </div>
+        
+
+        <div id="switch-area" class="switch-area">
+            <div class="switch-wrap">
+                <section class="switch-part switch-part1">
+                    <nav class="header-menu">
+                        <ul>
+                        
+                            <li><a href="/">主页</a></li>
+                        
+                            <li><a href="/archives/">所有文章</a></li>
+                        
+                            <li><a href="/tags/">标签云</a></li>
+                        
+                            <li><a href="/about/">关于我</a></li>
+                        
+                        </ul>
+                    </nav>
+                    <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa Email" href="mailto:&#109;&#97;&#111;&#121;&#105;&#98;&#111;&#64;&#103;&#109;&#97;&#105;&#108;&#46;&#99;&#111;&#109;" title="Email"></a>
+                            
+                                <a class="fa GitHub" href="https://github.com/maoyibo" title="GitHub"></a>
+                            
+                                <a class="fa RSS" href="/atom.xml" title="RSS"></a>
+                            
+                        </ul>
+                    </nav>
+                </section>
+                
+                
+                <section class="switch-part switch-part2">
+                    <div class="widget tagcloud" id="js-tagcloud">
+                        <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Commands/">Commands</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Concepts/">Concepts</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Database/">Database</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Format/">Format</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Installation/">Installation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Manual/">Manual</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mapper/">Mapper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/">MySQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NGS/">NGS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RNASeq/">RNASeq</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SAM/">SAM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SNP/">SNP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SNV/">SNV</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Script/">Script</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Terminologies/">Terminologies</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ubuntu/">Ubuntu</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Unfinished/">Unfinished</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/VCF/">VCF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/机器学习基石/">机器学习基石</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/笔记/">笔记</a></li></ul>
+                    </div>
+                </section>
+                
+                
+                
+                <section class="switch-part switch-part3">
+                    <div id="js-friends">
+                    
+                      <a class="main-nav-link switch-friends-link" href="https://hexo.io">Hexo</a>
+                    
+                      <a class="main-nav-link switch-friends-link" href="https://pages.github.com/">GitHub</a>
+                    
+                      <a class="main-nav-link switch-friends-link" href="http://moxfive.xyz/">MOxFIVE</a>
+                    
+                    </div>
+                </section>
+                
+
+                
+                
+                <section class="switch-part switch-part4">
+                
+                    <div id="js-aboutme">Linux and Bioinformatics</div>
+                </section>
+                
+            </div>
+        </div>
+    </header>                
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+      <div class="overlay">
+          <div class="slider-trigger"></div>
+          <h1 class="header-author js-mobile-header hide"><a href="/" title="回到主页">Mao Yibo</a></h1>
+      </div>
+    <div class="intrude-less">
+        <header id="header" class="inner">
+            <a href="/" class="profilepic">
+                <img src="/img/avatar.png" class="animated zoomIn">
+            </a>
+            <hgroup>
+              <h1 class="header-author"><a href="/" title="回到主页">Mao Yibo</a></h1>
+            </hgroup>
+            
+            <p class="header-subtitle">A Notebook for Linux and Bioinformatics.</p>
+            
+            <nav class="header-menu">
+                <ul>
+                
+                    <li><a href="/">主页</a></li>
+                
+                    <li><a href="/archives/">所有文章</a></li>
+                
+                    <li><a href="/tags/">标签云</a></li>
+                
+                    <li><a href="/about/">关于我</a></li>
+                
+                <div class="clearfix"></div>
+                </ul>
+            </nav>
+            <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa Email" target="_blank" href="mailto:&#109;&#97;&#111;&#121;&#105;&#98;&#111;&#64;&#103;&#109;&#97;&#105;&#108;&#46;&#99;&#111;&#109;" title="Email"></a>
+                            
+                                <a class="fa GitHub" target="_blank" href="https://github.com/maoyibo" title="GitHub"></a>
+                            
+                                <a class="fa RSS" target="_blank" href="/atom.xml" title="RSS"></a>
+                            
+                        </ul>
+            </nav>
+        </header>                
+    </div>
+    <link class="menu-list" tags="标签" friends="友情链接" about="关于我"/>
+</nav>
+      <div class="body-wrap"><article id="post-2016-12-24-Bowtie2-useage" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2016/12/24/2016-12-24-Bowtie2-useage/" class="article-date">
+      <time datetime="2016-12-24T06:27:23.000Z" itemprop="datePublished">2016-12-24</time>
+</a>
+
+
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      使用 Bowtie2 将reads 比对到参考基因组
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+
+        
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Commands/">Commands</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Manual/">Manual</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Mapper/">Mapper</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/NGS/">NGS</a></li></ul>
+    </div>
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <p>注：本例使用的bowtie2 版本为：version 2.2.6<br>bowtie2的使用需要两种输入文件：<br><strong>Reference genome data (fasta格式 .fa, .fasta, .fna)</strong><br>本文使用的例子是Escherichia coli 参考基因组（gi|15829254|ref|NC_002695.1| Escherichia coli O157:H7 str. Sakai chromosome, complete genome）。<br>文件下载后命名为ecoli.fa</p>
+<a id="more"></a>  
+<p><strong>Short reads data (fastaq格式 .fastaq, .fq)</strong><br>本文使用的read数据是从SRA获得的 SRR2982241 reads数据。  </p>
+<ul>
+<li>Name: NexteraXT</li>
+<li>Instrument: Illumina MiSeq</li>
+<li>Strategy: WGS</li>
+<li>Source: GENOMIC</li>
+<li>Selection: RANDOM</li>
+<li>Layout: PAIRED</li>
+<li>Construction protocol: NexteraXT</li>
+</ul>
+<p>首先使用sratoolkit中的fastq-dump 对下载的 SRR2982241.sra 格式文件转换格式为fastq格式文件，并将序列分开。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ fastq-dump --split-files SRR2982241.sra</div></pre></td></tr></table></figure></p>
+<p>生成文件 SRR2982241_1.fastq 和 SRR2982241_2.fastq</p>
+<h2 id="使用-bowtie2-build-对参考基因组建立索引"><a href="#使用-bowtie2-build-对参考基因组建立索引" class="headerlink" title="使用 bowtie2-build 对参考基因组建立索引"></a>使用 bowtie2-build 对参考基因组建立索引</h2><p>bowtie2-build 参数：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line">$ bowtie2-build -h</div><div class="line">Bowtie 2 version 2.2.6 by Ben Langmead (langmea@cs.jhu.edu, www.cs.jhu.edu/~langmea)</div><div class="line">Usage: bowtie2-build [options]* &lt;reference_in&gt; &lt;bt2_index_base&gt;</div><div class="line">    reference_in            comma-separated list of files with ref sequences</div><div class="line">                                    <span class="comment">#使用逗号分割的参考序列文件</span></div><div class="line">    bt2_index_base          write bt2 data to files with this dir/basename</div><div class="line">                                    <span class="comment">#bt2数据输出文件</span></div><div class="line">*** Bowtie 2 indexes work only with v2 (not v1).  Likewise <span class="keyword">for</span> v1 indexes. ***</div><div class="line">Options:</div><div class="line">    -f                      reference files are Fasta (default)</div><div class="line">    -c                      reference sequences given on cmd line (as &lt;reference_in&gt;)</div><div class="line">    --large-index           force generated index to be <span class="string">'large'</span>, even <span class="keyword">if</span> ref has fewer than 4 billion nucleotides</div><div class="line">    -a/--noauto             <span class="built_in">disable</span> automatic -p/--bmax/--dcv memory-fitting</div><div class="line">    -p/--packed             use packed strings internally; slower, less memory</div><div class="line">    --bmax &lt;int&gt;            max bucket sz <span class="keyword">for</span> blockwise suffix-array builder</div><div class="line">    --bmaxdivn &lt;int&gt;        max bucket sz as divisor of ref len (default: 4)</div><div class="line">    --dcv &lt;int&gt;             diff-cover period <span class="keyword">for</span> blockwise (default: 1024)</div><div class="line">    --nodc                  <span class="built_in">disable</span> diff-cover (algorithm becomes quadratic)</div><div class="line">    -r/--noref              don<span class="string">'t build .3/.4 index files</span></div><div class="line">    -3/--justref            just build .3/.4 index files</div><div class="line">    -o/--offrate &lt;int&gt;      SA is sampled every 2^&lt;int&gt; BWT chars (default: 5)</div><div class="line">    -t/--ftabchars &lt;int&gt;    # of chars consumed in initial lookup (default: 10)</div><div class="line">    --seed &lt;int&gt;            seed for random number generator</div><div class="line">    -q/--quiet              verbose output (for debugging)</div><div class="line">    -h/--help               print detailed description of tool and its options</div><div class="line">    --usage                 print this usage message</div><div class="line">    --version               print version information and quit</div></pre></td></tr></table></figure></p>
+<p>本例使用命令：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ bowtie2-build ecoli.fa ecoli</div></pre></td></tr></table></figure></p>
+<p>输出索引文件有6个：<br>ecoli.1.bt2，ecoli.2.bt2，ecoli.3.bt2，ecoli.4.bt2，ecoli.rev.1.bt2，ecoli.rev.2.bt2</p>
+<h2 id="使用-bowtie2-将reads-比对到参考基因组"><a href="#使用-bowtie2-将reads-比对到参考基因组" class="headerlink" title="使用 bowtie2 将reads 比对到参考基因组"></a>使用 bowtie2 将reads 比对到参考基因组</h2><p>bowtie2  参数<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div><div class="line">116</div><div class="line">117</div><div class="line">118</div><div class="line">119</div><div class="line">120</div><div class="line">121</div><div class="line">122</div><div class="line">123</div><div class="line">124</div></pre></td><td class="code"><pre><div class="line">$ bowtie2 -h</div><div class="line">Bowtie 2 version 2.2.6 by Ben Langmead (langmea@cs.jhu.edu, www.cs.jhu.edu/~langmea)</div><div class="line">Usage: </div><div class="line">  bowtie2 [options]* -x &lt;bt2-idx&gt; &#123;-1 &lt;m1&gt; -2 &lt;m2&gt; | -U &lt;r&gt;&#125; [-S &lt;sam&gt;]</div><div class="line"></div><div class="line">  &lt;bt2-idx&gt;  Index filename prefix (minus trailing .X.bt2).</div><div class="line">             NOTE: Bowtie 1 and Bowtie 2 indexes are not compatible.</div><div class="line">  &lt;m1&gt;       Files with <span class="comment">#1 mates, paired with files in &lt;m2&gt;.</span></div><div class="line">             Could be gzip<span class="string">'ed (extension: .gz) or bzip2'</span>ed (extension: .bz2).</div><div class="line">  &lt;m2&gt;       Files with <span class="comment">#2 mates, paired with files in &lt;m1&gt;.</span></div><div class="line">             Could be gzip<span class="string">'ed (extension: .gz) or bzip2'</span>ed (extension: .bz2).</div><div class="line">  &lt;r&gt;        Files with unpaired reads.</div><div class="line">             Could be gzip<span class="string">'ed (extension: .gz) or bzip2'</span>ed (extension: .bz2).</div><div class="line">  &lt;sam&gt;      File <span class="keyword">for</span> SAM output (default: stdout)</div><div class="line"></div><div class="line">  &lt;m1&gt;, &lt;m2&gt;, &lt;r&gt; can be comma-separated lists (no whitespace) and can be</div><div class="line">  specified many <span class="built_in">times</span>.  E.g. <span class="string">'-U file1.fq,file2.fq -U file3.fq'</span>.</div><div class="line"></div><div class="line">Options (defaults <span class="keyword">in</span> parentheses):</div><div class="line"></div><div class="line"> Input:</div><div class="line">  -q                 query input files are FASTQ .fq/.fastq (default)</div><div class="line">  --qseq             query input files are <span class="keyword">in</span> Illumina<span class="string">'s qseq format</span></div><div class="line">  -f                 query input files are (multi-)FASTA .fa/.mfa</div><div class="line">  -r                 query input files are raw one-sequence-per-line</div><div class="line">  -c                 &lt;m1&gt;, &lt;m2&gt;, &lt;r&gt; are sequences themselves, not files</div><div class="line">  -s/--skip &lt;int&gt;    skip the first &lt;int&gt; reads/pairs in the input (none)</div><div class="line">  -u/--upto &lt;int&gt;    stop after first &lt;int&gt; reads/pairs (no limit)</div><div class="line">  -5/--trim5 &lt;int&gt;   trim &lt;int&gt; bases from 5'/left end of reads (0)</div><div class="line">  -3/--trim3 &lt;int&gt;   trim &lt;int&gt; bases from 3<span class="string">'/right end of reads (0)</span></div><div class="line">  --phred33          qualities are Phred+33 (default)</div><div class="line">  --phred64          qualities are Phred+64</div><div class="line">  --int-quals        qualities encoded as space-delimited integers</div><div class="line"></div><div class="line"> Presets:                 Same as:</div><div class="line">  For --end-to-end:</div><div class="line">   --very-fast            -D 5 -R 1 -N 0 -L 22 -i S,0,2.50</div><div class="line">   --fast                 -D 10 -R 2 -N 0 -L 22 -i S,0,2.50</div><div class="line">   --sensitive            -D 15 -R 2 -N 0 -L 22 -i S,1,1.15 (default)</div><div class="line">   --very-sensitive       -D 20 -R 3 -N 0 -L 20 -i S,1,0.50</div><div class="line"></div><div class="line">  For --local:</div><div class="line">   --very-fast-local      -D 5 -R 1 -N 0 -L 25 -i S,1,2.00</div><div class="line">   --fast-local           -D 10 -R 2 -N 0 -L 22 -i S,1,1.75</div><div class="line">   --sensitive-local      -D 15 -R 2 -N 0 -L 20 -i S,1,0.75 (default)</div><div class="line">   --very-sensitive-local -D 20 -R 3 -N 0 -L 20 -i S,1,0.50</div><div class="line"></div><div class="line"> Alignment:</div><div class="line">  -N &lt;int&gt;           max # mismatches in seed alignment; can be 0 or 1 (0)</div><div class="line">  -L &lt;int&gt;           length of seed substrings; must be &gt;3, &lt;32 (22)</div><div class="line">  -i &lt;func&gt;          interval between seed substrings w/r/t read len (S,1,1.15)</div><div class="line">  --n-ceil &lt;func&gt;    func for max # non-A/C/G/Ts permitted in aln (L,0,0.15)</div><div class="line">  --dpad &lt;int&gt;       include &lt;int&gt; extra ref chars on sides of DP table (15)</div><div class="line">  --gbar &lt;int&gt;       disallow gaps within &lt;int&gt; nucs of read extremes (4)</div><div class="line">  --ignore-quals     treat all quality values as 30 on Phred scale (off)</div><div class="line">  --nofw             do not align forward (original) version of read (off)</div><div class="line">  --norc             do not align reverse-complement version of read (off)</div><div class="line">  --no-1mm-upfront   do not allow 1 mismatch alignments before attempting to</div><div class="line">                     scan for the optimal seeded alignments</div><div class="line">  --end-to-end       entire read must align; no clipping (on)</div><div class="line">   OR</div><div class="line">  --local            local alignment; ends might be soft clipped (off)</div><div class="line"></div><div class="line"> Scoring:</div><div class="line">  --ma &lt;int&gt;         match bonus (0 for --end-to-end, 2 for --local) </div><div class="line">  --mp &lt;int&gt;         max penalty for mismatch; lower qual = lower penalty (6)</div><div class="line">  --np &lt;int&gt;         penalty for non-A/C/G/Ts in read/ref (1)</div><div class="line">  --rdg &lt;int&gt;,&lt;int&gt;  read gap open, extend penalties (5,3)</div><div class="line">  --rfg &lt;int&gt;,&lt;int&gt;  reference gap open, extend penalties (5,3)</div><div class="line">  --score-min &lt;func&gt; min acceptable alignment score w/r/t read length</div><div class="line">                     (G,20,8 for local, L,-0.6,-0.6 for end-to-end)</div><div class="line"></div><div class="line"> Reporting:</div><div class="line">  (default)          look for multiple alignments, report best, with MAPQ</div><div class="line">   OR</div><div class="line">  -k &lt;int&gt;           report up to &lt;int&gt; alns per read; MAPQ not meaningful</div><div class="line">   OR</div><div class="line">  -a/--all           report all alignments; very slow, MAPQ not meaningful</div><div class="line"></div><div class="line"> Effort:</div><div class="line">  -D &lt;int&gt;           give up extending after &lt;int&gt; failed extends in a row (15)</div><div class="line">  -R &lt;int&gt;           for reads w/ repetitive seeds, try &lt;int&gt; sets of seeds (2)</div><div class="line"></div><div class="line"> Paired-end:</div><div class="line">  -I/--minins &lt;int&gt;  minimum fragment length (0)</div><div class="line">  -X/--maxins &lt;int&gt;  maximum fragment length (500)</div><div class="line">  --fr/--rf/--ff     -1, -2 mates align fw/rev, rev/fw, fw/fw (--fr)</div><div class="line">  --no-mixed         suppress unpaired alignments for paired reads</div><div class="line">  --no-discordant    suppress discordant alignments for paired reads</div><div class="line">  --no-dovetail      not concordant when mates extend past each other</div><div class="line">  --no-contain       not concordant when one mate alignment contains other</div><div class="line">  --no-overlap       not concordant when mates overlap at all</div><div class="line"></div><div class="line"> Output:</div><div class="line">  -t/--time          print wall-clock time taken by search phases</div><div class="line">  --un &lt;path&gt;           write unpaired reads that didn't align to &lt;path&gt;</div><div class="line">  --al &lt;path&gt;           write unpaired reads that aligned at least once to &lt;path&gt;</div><div class="line">  --un-conc &lt;path&gt;      write pairs that didn<span class="string">'t align concordantly to &lt;path&gt;</span></div><div class="line">  --al-conc &lt;path&gt;      write pairs that aligned concordantly at least once to &lt;path&gt;</div><div class="line">  (Note: for --un, --al, --un-conc, or --al-conc, add '-gz<span class="string">' to the option name, e.g.</span></div><div class="line">  --un-gz &lt;path&gt;, to gzip compress output, or add '-bz2<span class="string">' to bzip2 compress output.)</span></div><div class="line">  --quiet            print nothing to stderr except serious errors</div><div class="line">  --met-file &lt;path&gt;  send metrics to file at &lt;path&gt; (off)</div><div class="line">  --met-stderr       send metrics to stderr (off)</div><div class="line">  --met &lt;int&gt;        report internal counters &amp; metrics every &lt;int&gt; secs (1)</div><div class="line">  --no-unal          supppress SAM records for unaligned reads</div><div class="line">  --no-head          supppress header lines, i.e. lines starting with @</div><div class="line">  --no-sq            supppress @SQ header lines</div><div class="line">  --rg-id &lt;text&gt;     set read group id, reflected in @RG line and RG:Z: opt field</div><div class="line">  --rg &lt;text&gt;        add &lt;text&gt; ("lab:value") to @RG line of SAM header.</div><div class="line">                     Note: @RG line only printed when --rg-id is set.</div><div class="line">  --omit-sec-seq     put '*<span class="string">' in SEQ and QUAL fields for secondary alignments.</span></div><div class="line"></div><div class="line"> Performance:</div><div class="line">  -p/--threads &lt;int&gt; number of alignment threads to launch (1)</div><div class="line">  --reorder          force SAM output order to match order of input reads</div><div class="line">  --mm               use memory-mapped I/O for index; many 'bowtie<span class="string">'s can share</span></div><div class="line"></div><div class="line"> Other:</div><div class="line">  --qc-filter        filter out reads that are bad according to QSEQ filter</div><div class="line">  --seed &lt;int&gt;       seed for random number generator (0)</div><div class="line">  --non-deterministic seed rand. gen. arbitrarily instead of using read attributes</div><div class="line">  --version          print version information and quit</div><div class="line">  -h/--help          print this usage message</div></pre></td></tr></table></figure></p>
+<p>bowtie2 默认执行 end-to-end read 比对，且本例使用Paired-end reads 使用命令<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">$ bowtie2 -x ecoli -1 SRR2982241_1_filtered.fastq -2 SRR2982241_2_filtered.fastq -S SRR2982241.ETE.sam</div><div class="line"><span class="comment">#程序输出</span></div><div class="line">1340783 reads; of these:</div><div class="line">  1340783 (100.00%) were paired; of these:</div><div class="line">    967025 (72.12%) aligned concordantly 0 <span class="built_in">times</span></div><div class="line">    357153 (26.64%) aligned concordantly exactly 1 time</div><div class="line">    16605 (1.24%) aligned concordantly &gt;1 <span class="built_in">times</span></div><div class="line">    ----</div><div class="line">    967025 pairs aligned concordantly 0 <span class="built_in">times</span>; of these:</div><div class="line">      485924 (50.25%) aligned discordantly 1 time</div><div class="line">    ----</div><div class="line">    481101 pairs aligned 0 <span class="built_in">times</span> concordantly or discordantly; of these:</div><div class="line">      962202 mates make up the pairs; of these:</div><div class="line">        834252 (86.70%) aligned 0 <span class="built_in">times</span></div><div class="line">        73901 (7.68%) aligned exactly 1 time</div><div class="line">        54049 (5.62%) aligned &gt;1 <span class="built_in">times</span></div><div class="line">68.89% overall alignment rate</div></pre></td></tr></table></figure></p>
+<p>bowtie2 执行 Local read 比对，使用命令<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">$ bowtie2 --<span class="built_in">local</span> -x ecoli -1 SRR2982241_1_filtered.fastq -2 SRR2982241_2_filtered.fastq -S SRR2982241.LOCAL.sam</div><div class="line"><span class="comment">#程序输出</span></div><div class="line">1340783 reads; of these:</div><div class="line">  1340783 (100.00%) were paired; of these:</div><div class="line">    918570 (68.51%) aligned concordantly 0 <span class="built_in">times</span></div><div class="line">    384568 (28.68%) aligned concordantly exactly 1 time</div><div class="line">    37645 (2.81%) aligned concordantly &gt;1 <span class="built_in">times</span></div><div class="line">    ----</div><div class="line">    918570 pairs aligned concordantly 0 <span class="built_in">times</span>; of these:</div><div class="line">      492349 (53.60%) aligned discordantly 1 time</div><div class="line">    ----</div><div class="line">    426221 pairs aligned 0 <span class="built_in">times</span> concordantly or discordantly; of these:</div><div class="line">      852442 mates make up the pairs; of these:</div><div class="line">        724379 (84.98%) aligned 0 <span class="built_in">times</span></div><div class="line">        44099 (5.17%) aligned exactly 1 time</div><div class="line">        83964 (9.85%) aligned &gt;1 <span class="built_in">times</span></div><div class="line">72.99% overall alignment rate</div></pre></td></tr></table></figure></p>
+<p>对与Single-end reads 使用命令：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="comment">#End-to-end:</span></div><div class="line">bowtie2 -x ecoli -U SRR2982241.fastq -S SRR2982241.ETE.sam</div><div class="line"></div><div class="line"><span class="comment">#Local:</span></div><div class="line">bowtie2 --<span class="built_in">local</span> -x ecoli -U SRR2982241.fastq -S SRR2982241.LOCAL.sam</div></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    
+  </div>
+  
+    
+    <div class="copyright">
+        <p><span>本文标题:</span><a href="/2016/12/24/2016-12-24-Bowtie2-useage/">使用 Bowtie2 将reads 比对到参考基因组</a></p>
+        <p><span>文章作者:</span><a href="/" title="回到主页">Mao Yibo</a></p>
+        <p><span>发布时间:</span>2016-12-24, 14:27:23</p>
+        <p><span>最后更新:</span>2017-06-30, 21:10:12</p>
+        <p>
+            <span>原始链接:</span><a class="post-url" href="/2016/12/24/2016-12-24-Bowtie2-useage/" title="使用 Bowtie2 将reads 比对到参考基因组">http://maoyibo.tk/2016/12/24/2016-12-24-Bowtie2-useage/</a>
+            <span class="copy-path" data-clipboard-text="原文: http://maoyibo.tk/2016/12/24/2016-12-24-Bowtie2-useage/　　作者: Mao Yibo" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
+            <script> var clipboard = new Clipboard('.copy-path'); </script>
+        </p>
+        <p>
+            <span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/" title="CC BY-NC-SA 4.0 International" target = "_blank">"署名-非商用-相同方式共享 4.0"</a> 转载请保留原文链接及作者。
+        </p>
+    </div>
+
+
+
+    <nav id="article-nav">
+        
+            <div id="article-nav-newer" class="article-nav-title">
+                <a href="/2016/12/25/2016-12-25-SAM-Format/">
+                    SAM 格式介绍
+                </a>
+            </div>
+        
+        
+            <div id="article-nav-older" class="article-nav-title">
+                <a href="/2016/12/20/2016-12-20-NGS-Terminologies-and-Concepts/">
+                    NGS Terminologies and Concepts
+                </a>
+            </div>
+        
+    </nav>
+
+  
+</article>
+
+    <div id="toc" class="toc-article">
+        <strong class="toc-title">文章目录</strong>
+        
+            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#使用-bowtie2-build-对参考基因组建立索引"><span class="toc-number">1.</span> <span class="toc-text">使用 bowtie2-build 对参考基因组建立索引</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#使用-bowtie2-将reads-比对到参考基因组"><span class="toc-number">2.</span> <span class="toc-text">使用 bowtie2 将reads 比对到参考基因组</span></a></li></ol>
+        
+    </div>
+    <style>
+        .left-col .switch-btn,
+        .left-col .switch-area {
+            display: none;
+        }
+        .toc-level-3 i,
+        .toc-level-3 ol {
+            display: none !important;
+        }
+    </style>
+
+    <input type="button" id="tocButton" value="隐藏目录"  title="点击按钮隐藏或者显示文章目录">
+
+    <script>
+        yiliaConfig.toc = ["隐藏目录", "显示目录", !!"false"];
+    </script>
+
+
+
+    
+<div class="share">
+    
+        <div class="bdsharebuttonbox">
+            <a href="#" class="fa fa-twitter bds_twi" data-cmd="twi" title="分享到推特"></a>
+            <a href="#" class="fa fa-weibo bds_tsina" data-cmd="tsina" title="分享到新浪微博"></a>
+            <a href="#" class="fa fa-qq bds_sqq" data-cmd="sqq" title="分享给 QQ 好友"></a>
+            <a href="#" class="fa fa-files-o bds_copy" data-cmd="copy" title="复制网址"></a>
+            <a href="#" class="fa fa fa-envelope-o bds_mail" data-cmd="mail" title="通过邮件分享"></a>
+            <a href="#" class="fa fa-weixin bds_weixin" data-cmd="weixin" title="生成文章二维码"></a>
+            <a href="#" class="fa fa-share-alt bds_more" data-cmd="more"></i></a>
+        </div>
+        <script>
+            window._bd_share_config={
+                "common":{"bdSnsKey":{},"bdText":"使用 Bowtie2 将reads 比对到参考基因组　| Mao Yibo's Blog　","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"24"},"share":{}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+        </script>
+    
+
+    
+</div>
+
+
+
+
+
+
+
+    
+
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/2016/12/25/2016-12-25-SAM-Format/" title="上一篇: SAM 格式介绍">
+                <i class="fa fa-angle-left"></i>
+            </a>
+        
+
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+
+        
+            <a href="/2016/12/20/2016-12-20-NGS-Terminologies-and-Concepts/" title="下一篇: NGS Terminologies and Concepts">
+                <i class="fa fa-angle-right"></i>
+            </a>
+        
+    </div>
+
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2016/12/28/2016-12-28-VCF-Format/">VCF 4.1版本 格式介绍</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/27/2016-12-27-ubuntu-mysql-install/">Ubuntu 安装 MySQL 简便方法</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/26/2016-12-26-tophat-useage/">TopHat使用方法</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/25/2016-12-25-SAM-Format/">SAM 格式介绍</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/24/2016-12-24-Bowtie2-useage/">使用 Bowtie2 将reads 比对到参考基因组</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/20/2016-12-20-NGS-Terminologies-and-Concepts/">NGS Terminologies and Concepts</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/13/2016-12-13-samtools-useage/">使用samtools发现SNPs</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/12/2016-12-12-bwa-useage/">使用 bwa 将 reads 比对到参考基因组</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/11/2016-12-11-MLF-1/">机器学习基石  第一节 The Learning Problem</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/10/2016-12-10-Ubuntu-Dependence-Installation/">Ubuntu Dependence Installation</a></li></ul>
+
+
+
+
+    <script>
+        
+    </script>
+</div>
+      <footer id="footer">
+    <div class="outer">
+        <div id="footer-info">
+            <div class="footer-left">
+                <i class="fa fa-copyright"></i> 
+                2016-2017 Mao Yibo
+            </div>
+            <div class="footer-right">
+                <a href="http://hexo.io/" target="_blank" title="快速、简洁且高效的博客框架">Hexo</a>  Theme <a href="https://github.com/MOxFIVE/hexo-theme-yelee" target="_blank" title="简而不减 Hexo 双栏博客主题  v3.5">Yelee</a> by MOxFIVE <i class="fa fa-heart animated infinite pulse"></i>
+            </div>
+        </div>
+        
+            <div class="visit">
+                
+                    <span id="busuanzi_container_site_pv" style='display:none'>
+                        <span id="site-visit" title="本站到访数"><i class="fa fa-user" aria-hidden="true"></i><span id="busuanzi_value_site_uv"></span>
+                        </span>
+                    </span>
+                
+                
+                    <span>| </span>
+                
+                
+                    <span id="busuanzi_container_page_pv" style='display:none'>
+                        <span id="page-visit"  title="本页阅读量"><i class="fa fa-eye animated infinite pulse" aria-hidden="true"></i><span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    </span>
+                
+            </div>
+        
+    </div>
+</footer>
+    </div>
+    
+<script data-main="/js/main.js" src="//cdn.bootcss.com/require.js/2.2.0/require.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var iPad = window.navigator.userAgent.indexOf('iPad');
+            if (iPad > -1 || $(".left-col").css("display") === "none") {
+                var bgColorList = ["#9db3f4", "#414141", "#e5a859", "#f5dfc6", "#c084a0", "#847e72", "#cd8390", "#996731"];
+                var bgColor = Math.ceil(Math.random() * (bgColorList.length - 1));
+                $("body").css({"background-color": bgColorList[bgColor], "background-size": "cover"});
+            }
+            else {
+                var backgroundnum = 5;
+                var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+                $("body").css({"background": backgroundimg, "background-attachment": "fixed", "background-size": "cover"});
+            }
+        })
+    </script>
+
+
+
+
+
+    <script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+    tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    }
+});
+
+MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for(i=0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';                 
+    }       
+});
+</script>
+
+<script src="//cdn.bootcss.com/mathjax/2.6.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<div class="scroll" id="scroll">
+    <a href="#" title="返回顶部"><i class="fa fa-arrow-up"></i></a>
+    <a href="#comments" onclick="load$hide();" title="查看评论"><i class="fa fa-comments-o"></i></a>
+    <a href="#footer" title="转到底部"><i class="fa fa-arrow-down"></i></a>
+</div>
+<script>
+    // Open in New Window
+    
+        var oOpenInNew = {
+            
+            
+            
+            
+            
+            
+             archives: ".archive-article-title", 
+             miniArchives: "a.post-list-link", 
+            
+             friends: "#js-friends a", 
+             socail: ".social a" 
+        }
+        for (var x in oOpenInNew) {
+            $(oOpenInNew[x]).attr("target", "_blank");
+        }
+    
+</script>
+
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+  </div>
+</body>
+</html>

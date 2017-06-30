@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+
+    <!--[if lt IE 9]>
+        <style>body {display: none; background: none !important} </style>
+        <meta http-equiv="Refresh" Content="0; url=//outdatedbrowser.com/" />
+    <![endif]-->
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="format-detection" content="telephone=no" />
+<meta name="author" content="Mao Yibo" />
+
+
+
+<meta name="description" content="注：VCF 4.1版本 格式说明文件（The Variant Call Format (VCF) Version 4.1 Specification）下载地址。 VCF 是一个文本文件格式，通常以压缩文件格式储存。包含元信息行，一个header行，然后是数据行，每个数据行包含一个基因组上位置的信息。VCF 格式也能够包含每个位置样品的基因型的信息。">
+<meta name="keywords" content="Format,Unfinished,VCF">
+<meta property="og:type" content="article">
+<meta property="og:title" content="VCF 4.1版本 格式介绍">
+<meta property="og:url" content="http://maoyibo.tk/2016/12/28/2016-12-28-VCF-Format/index.html">
+<meta property="og:site_name" content="Mao Yibo&#39;s Blog">
+<meta property="og:description" content="注：VCF 4.1版本 格式说明文件（The Variant Call Format (VCF) Version 4.1 Specification）下载地址。 VCF 是一个文本文件格式，通常以压缩文件格式储存。包含元信息行，一个header行，然后是数据行，每个数据行包含一个基因组上位置的信息。VCF 格式也能够包含每个位置样品的基因型的信息。">
+<meta property="og:updated_time" content="2017-06-30T13:10:32.429Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="VCF 4.1版本 格式介绍">
+<meta name="twitter:description" content="注：VCF 4.1版本 格式说明文件（The Variant Call Format (VCF) Version 4.1 Specification）下载地址。 VCF 是一个文本文件格式，通常以压缩文件格式储存。包含元信息行，一个header行，然后是数据行，每个数据行包含一个基因组上位置的信息。VCF 格式也能够包含每个位置样品的基因型的信息。">
+
+<link rel="apple-touch-icon" href= "/apple-touch-icon.png">
+
+
+    <link rel="alternate" href="/atom.xml" title="Mao Yibo&#39;s Blog" type="application/atom+xml">
+
+
+
+    <link rel="shortcut icon" href="/favicon.png">
+
+
+
+    <link href="//cdn.bootcss.com/animate.css/3.5.1/animate.min.css" rel="stylesheet">
+
+
+
+    <link href="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet">
+
+
+
+    <script src="//cdn.bootcss.com/pace/1.0.2/pace.min.js"></script>
+    <link href="//cdn.bootcss.com/pace/1.0.2/themes/blue/pace-theme-minimal.css" rel="stylesheet">
+
+
+<link rel="stylesheet" href="/css/style.css">
+
+
+
+<link href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">
+
+
+<title>VCF 4.1版本 格式介绍 | Mao Yibo&#39;s Blog</title>
+
+<script src="//cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+<script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
+
+<script>
+    var yiliaConfig = {
+        fancybox: true,
+        animate: true,
+        isHome: false,
+        isPost: true,
+        isArchive: false,
+        isTag: false,
+        isCategory: false,
+        fancybox_js: "//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.js",
+        scrollreveal: "//cdn.bootcss.com/scrollReveal.js/3.1.4/scrollreveal.min.js",
+        search: true
+    }
+</script>
+
+
+    <script>
+        yiliaConfig.jquery_ui = [true, "//cdn.bootcss.com/jqueryui/1.10.4/jquery-ui.min.js", "//cdn.bootcss.com/jqueryui/1.10.4/css/jquery-ui.min.css"];
+    </script>
+
+
+
+    <script> yiliaConfig.rootUrl = "\/";</script>
+
+
+
+
+
+
+</head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+    <header id="header" class="inner">
+        <a href="/" class="profilepic">
+            <img src="/img/avatar.png" class="animated zoomIn">
+        </a>
+        <hgroup>
+          <h1 class="header-author"><a href="/">Mao Yibo</a></h1>
+        </hgroup>
+
+        
+        <p class="header-subtitle">A Notebook for Linux and Bioinformatics.</p>
+        
+
+        
+            <form id="search-form">
+            <input type="text" id="local-search-input" name="q" placeholder="search..." class="search form-control" autocomplete="off" autocorrect="off" searchonload="false" />
+            <i class="fa fa-times" onclick="resetSearch()"></i>
+            </form>
+            <div id="local-search-result"></div>
+            <p class='no-result'>No results found <i class='fa fa-spinner fa-pulse'></i></p>
+        
+
+
+        
+            <div id="switch-btn" class="switch-btn">
+                <div class="icon">
+                    <div class="icon-ctn">
+                        <div class="icon-wrap icon-house" data-idx="0">
+                            <div class="birdhouse"></div>
+                            <div class="birdhouse_holes"></div>
+                        </div>
+                        <div class="icon-wrap icon-ribbon hide" data-idx="1">
+                            <div class="ribbon"></div>
+                        </div>
+                        
+                        <div class="icon-wrap icon-link hide" data-idx="2">
+                            <div class="loopback_l"></div>
+                            <div class="loopback_r"></div>
+                        </div>
+                        
+                        
+                        <div class="icon-wrap icon-me hide" data-idx="3">
+                            <div class="user"></div>
+                            <div class="shoulder"></div>
+                        </div>
+                        
+                    </div>
+                    
+                </div>
+                <div class="tips-box hide">
+                    <div class="tips-arrow"></div>
+                    <ul class="tips-inner">
+                        <li>菜单</li>
+                        <li>标签</li>
+                        
+                        <li>友情链接</li>
+                        
+                        
+                        <li>关于我</li>
+                        
+                    </ul>
+                </div>
+            </div>
+        
+
+        <div id="switch-area" class="switch-area">
+            <div class="switch-wrap">
+                <section class="switch-part switch-part1">
+                    <nav class="header-menu">
+                        <ul>
+                        
+                            <li><a href="/">主页</a></li>
+                        
+                            <li><a href="/archives/">所有文章</a></li>
+                        
+                            <li><a href="/tags/">标签云</a></li>
+                        
+                            <li><a href="/about/">关于我</a></li>
+                        
+                        </ul>
+                    </nav>
+                    <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa Email" href="mailto:&#109;&#97;&#111;&#121;&#105;&#98;&#111;&#64;&#103;&#109;&#97;&#105;&#108;&#46;&#99;&#111;&#109;" title="Email"></a>
+                            
+                                <a class="fa GitHub" href="https://github.com/maoyibo" title="GitHub"></a>
+                            
+                                <a class="fa RSS" href="/atom.xml" title="RSS"></a>
+                            
+                        </ul>
+                    </nav>
+                </section>
+                
+                
+                <section class="switch-part switch-part2">
+                    <div class="widget tagcloud" id="js-tagcloud">
+                        <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Commands/">Commands</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Concepts/">Concepts</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Database/">Database</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Format/">Format</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Installation/">Installation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Manual/">Manual</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mapper/">Mapper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/">MySQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NGS/">NGS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RNASeq/">RNASeq</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SAM/">SAM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SNP/">SNP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SNV/">SNV</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Script/">Script</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Terminologies/">Terminologies</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ubuntu/">Ubuntu</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Unfinished/">Unfinished</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/VCF/">VCF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/机器学习基石/">机器学习基石</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/笔记/">笔记</a></li></ul>
+                    </div>
+                </section>
+                
+                
+                
+                <section class="switch-part switch-part3">
+                    <div id="js-friends">
+                    
+                      <a class="main-nav-link switch-friends-link" href="https://hexo.io">Hexo</a>
+                    
+                      <a class="main-nav-link switch-friends-link" href="https://pages.github.com/">GitHub</a>
+                    
+                      <a class="main-nav-link switch-friends-link" href="http://moxfive.xyz/">MOxFIVE</a>
+                    
+                    </div>
+                </section>
+                
+
+                
+                
+                <section class="switch-part switch-part4">
+                
+                    <div id="js-aboutme">Linux and Bioinformatics</div>
+                </section>
+                
+            </div>
+        </div>
+    </header>                
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+      <div class="overlay">
+          <div class="slider-trigger"></div>
+          <h1 class="header-author js-mobile-header hide"><a href="/" title="回到主页">Mao Yibo</a></h1>
+      </div>
+    <div class="intrude-less">
+        <header id="header" class="inner">
+            <a href="/" class="profilepic">
+                <img src="/img/avatar.png" class="animated zoomIn">
+            </a>
+            <hgroup>
+              <h1 class="header-author"><a href="/" title="回到主页">Mao Yibo</a></h1>
+            </hgroup>
+            
+            <p class="header-subtitle">A Notebook for Linux and Bioinformatics.</p>
+            
+            <nav class="header-menu">
+                <ul>
+                
+                    <li><a href="/">主页</a></li>
+                
+                    <li><a href="/archives/">所有文章</a></li>
+                
+                    <li><a href="/tags/">标签云</a></li>
+                
+                    <li><a href="/about/">关于我</a></li>
+                
+                <div class="clearfix"></div>
+                </ul>
+            </nav>
+            <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa Email" target="_blank" href="mailto:&#109;&#97;&#111;&#121;&#105;&#98;&#111;&#64;&#103;&#109;&#97;&#105;&#108;&#46;&#99;&#111;&#109;" title="Email"></a>
+                            
+                                <a class="fa GitHub" target="_blank" href="https://github.com/maoyibo" title="GitHub"></a>
+                            
+                                <a class="fa RSS" target="_blank" href="/atom.xml" title="RSS"></a>
+                            
+                        </ul>
+            </nav>
+        </header>                
+    </div>
+    <link class="menu-list" tags="标签" friends="友情链接" about="关于我"/>
+</nav>
+      <div class="body-wrap"><article id="post-2016-12-28-VCF-Format" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2016/12/28/2016-12-28-VCF-Format/" class="article-date">
+      <time datetime="2016-12-28T08:54:56.000Z" itemprop="datePublished">2016-12-28</time>
+</a>
+
+
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      VCF 4.1版本 格式介绍
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+
+        
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Format/">Format</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Unfinished/">Unfinished</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/VCF/">VCF</a></li></ul>
+    </div>
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <p>注：VCF 4.1版本 格式说明文件（The Variant Call Format (VCF) Version 4.1 Specification）<a href="https://github.com/samtools/hts-specs" target="_blank" rel="external">下载地址</a>。</p>
+<p>VCF 是一个文本文件格式，通常以压缩文件格式储存。包含元信息行，一个header行，然后是数据行，每个数据行包含一个基因组上位置的信息。VCF 格式也能够包含每个位置样品的基因型的信息。</p>
+<a id="more"></a>  
+<h2 id="元信息行"><a href="#元信息行" class="headerlink" title="元信息行"></a>元信息行</h2><p>文件的元信息行以##开始，而且必须是键=值对。推荐在元信息部分包含INFO, FILTER 和 FORMAT等出现在VCF文件body部分的条目的描述信息行。虽然这些是可选的，但是如果他们出现则需要被完全符合规则。</p>
+<h4 id="fileformat"><a href="#fileformat" class="headerlink" title="fileformat"></a>fileformat</h4><p>一个单独的文件格式区域是必须的，而且必须出现在文件的第一行，描述VCF格式的版本。此行应该是：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">##fileformat=VCFv4.1</div></pre></td></tr></table></figure></p>
+<h3 id="INFO"><a href="#INFO" class="headerlink" title="INFO"></a>INFO</h3><p>INFO 区域应该应该如下描述（所有的键都是必须的）：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">##INFO=&lt;ID=ID,Number=number,Type=type,Description=&quot;description&quot;&gt;</div></pre></td></tr></table></figure></p>
+<p>INFO区域的类型可能是：整型，浮点，标记，符号和字符串。Number条目的值是整数，表示INFO区域可以包含的值的个数，如果INFO区域包含一个单独的数字则Number条目为’1’，如果包含一对数字则为’2’ ，如果对于每一个等位基因均有一个值则应为’A’，如果对于每一个可能的基因型均有一个值，则应为’G’，如果可能值的个数是变化的，或者未帮顶的，应为’.’。’Flag’类型表示INFO区域不包含一个值条目，Number条目应该是0。Description值应该被双引号包围，双引号中的双引号应使用\转意。</p>
+<h3 id="FILTER"><a href="#FILTER" class="headerlink" title="FILTER"></a>FILTER</h3><p>应用于数据的过滤方法应该如下描述：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">##FILTER=&lt;ID=ID,Description=&quot;description&quot;&gt;</div></pre></td></tr></table></figure></p>
+<h3 id="FORMAT"><a href="#FORMAT" class="headerlink" title="FORMAT"></a>FORMAT</h3><p>在FORMAT区域指定的基因型信息应该如下描述：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">##FORMAT=&lt;ID=ID,Number=number,Type=type,Description=&quot;description&quot;&gt;</div></pre></td></tr></table></figure></p>
+<p>FORMAT区域可能的类型是：整数，浮点，字符和字符串。</p>
+<h3 id="ALT"><a href="#ALT" class="headerlink" title="ALT"></a>ALT</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">##ALT=&lt;ID=type,Description=description&gt;</div></pre></td></tr></table></figure>
+<h2 id="Header"><a href="#Header" class="headerlink" title="Header"></a>Header</h2>
+      
+    </div>
+    
+  </div>
+  
+    
+    <div class="copyright">
+        <p><span>本文标题:</span><a href="/2016/12/28/2016-12-28-VCF-Format/">VCF 4.1版本 格式介绍</a></p>
+        <p><span>文章作者:</span><a href="/" title="回到主页">Mao Yibo</a></p>
+        <p><span>发布时间:</span>2016-12-28, 16:54:56</p>
+        <p><span>最后更新:</span>2017-06-30, 21:10:32</p>
+        <p>
+            <span>原始链接:</span><a class="post-url" href="/2016/12/28/2016-12-28-VCF-Format/" title="VCF 4.1版本 格式介绍">http://maoyibo.tk/2016/12/28/2016-12-28-VCF-Format/</a>
+            <span class="copy-path" data-clipboard-text="原文: http://maoyibo.tk/2016/12/28/2016-12-28-VCF-Format/　　作者: Mao Yibo" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
+            <script> var clipboard = new Clipboard('.copy-path'); </script>
+        </p>
+        <p>
+            <span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/" title="CC BY-NC-SA 4.0 International" target = "_blank">"署名-非商用-相同方式共享 4.0"</a> 转载请保留原文链接及作者。
+        </p>
+    </div>
+
+
+
+    <nav id="article-nav">
+        
+        
+            <div id="article-nav-older" class="article-nav-title">
+                <a href="/2016/12/27/2016-12-27-ubuntu-mysql-install/">
+                    Ubuntu 安装 MySQL 简便方法
+                </a>
+            </div>
+        
+    </nav>
+
+  
+</article>
+
+    <div id="toc" class="toc-article">
+        <strong class="toc-title">文章目录</strong>
+        
+            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#元信息行"><span class="toc-number">1.</span> <span class="toc-text">元信息行</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#fileformat"><span class="toc-number">1.0.1.</span> <span class="toc-text">fileformat</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#INFO"><span class="toc-number">1.1.</span> <span class="toc-text">INFO</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#FILTER"><span class="toc-number">1.2.</span> <span class="toc-text">FILTER</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#FORMAT"><span class="toc-number">1.3.</span> <span class="toc-text">FORMAT</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ALT"><span class="toc-number">1.4.</span> <span class="toc-text">ALT</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Header"><span class="toc-number">2.</span> <span class="toc-text">Header</span></a></li></ol>
+        
+    </div>
+    <style>
+        .left-col .switch-btn,
+        .left-col .switch-area {
+            display: none;
+        }
+        .toc-level-3 i,
+        .toc-level-3 ol {
+            display: none !important;
+        }
+    </style>
+
+    <input type="button" id="tocButton" value="隐藏目录"  title="点击按钮隐藏或者显示文章目录">
+
+    <script>
+        yiliaConfig.toc = ["隐藏目录", "显示目录", !!"false"];
+    </script>
+
+
+
+    
+<div class="share">
+    
+        <div class="bdsharebuttonbox">
+            <a href="#" class="fa fa-twitter bds_twi" data-cmd="twi" title="分享到推特"></a>
+            <a href="#" class="fa fa-weibo bds_tsina" data-cmd="tsina" title="分享到新浪微博"></a>
+            <a href="#" class="fa fa-qq bds_sqq" data-cmd="sqq" title="分享给 QQ 好友"></a>
+            <a href="#" class="fa fa-files-o bds_copy" data-cmd="copy" title="复制网址"></a>
+            <a href="#" class="fa fa fa-envelope-o bds_mail" data-cmd="mail" title="通过邮件分享"></a>
+            <a href="#" class="fa fa-weixin bds_weixin" data-cmd="weixin" title="生成文章二维码"></a>
+            <a href="#" class="fa fa-share-alt bds_more" data-cmd="more"></i></a>
+        </div>
+        <script>
+            window._bd_share_config={
+                "common":{"bdSnsKey":{},"bdText":"VCF 4.1版本 格式介绍　| Mao Yibo's Blog　","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"24"},"share":{}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+        </script>
+    
+
+    
+</div>
+
+
+
+
+
+
+
+    
+
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/" title="回到主页"><i class="fa fa-home"></i></a>
+        
+
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+
+        
+            <a href="/2016/12/27/2016-12-27-ubuntu-mysql-install/" title="下一篇: Ubuntu 安装 MySQL 简便方法">
+                <i class="fa fa-angle-right"></i>
+            </a>
+        
+    </div>
+
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2016/12/28/2016-12-28-VCF-Format/">VCF 4.1版本 格式介绍</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/27/2016-12-27-ubuntu-mysql-install/">Ubuntu 安装 MySQL 简便方法</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/26/2016-12-26-tophat-useage/">TopHat使用方法</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/25/2016-12-25-SAM-Format/">SAM 格式介绍</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/24/2016-12-24-Bowtie2-useage/">使用 Bowtie2 将reads 比对到参考基因组</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/20/2016-12-20-NGS-Terminologies-and-Concepts/">NGS Terminologies and Concepts</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/13/2016-12-13-samtools-useage/">使用samtools发现SNPs</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/12/2016-12-12-bwa-useage/">使用 bwa 将 reads 比对到参考基因组</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/11/2016-12-11-MLF-1/">机器学习基石  第一节 The Learning Problem</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/10/2016-12-10-Ubuntu-Dependence-Installation/">Ubuntu Dependence Installation</a></li></ul>
+
+
+
+
+    <script>
+        
+    </script>
+</div>
+      <footer id="footer">
+    <div class="outer">
+        <div id="footer-info">
+            <div class="footer-left">
+                <i class="fa fa-copyright"></i> 
+                2016-2017 Mao Yibo
+            </div>
+            <div class="footer-right">
+                <a href="http://hexo.io/" target="_blank" title="快速、简洁且高效的博客框架">Hexo</a>  Theme <a href="https://github.com/MOxFIVE/hexo-theme-yelee" target="_blank" title="简而不减 Hexo 双栏博客主题  v3.5">Yelee</a> by MOxFIVE <i class="fa fa-heart animated infinite pulse"></i>
+            </div>
+        </div>
+        
+            <div class="visit">
+                
+                    <span id="busuanzi_container_site_pv" style='display:none'>
+                        <span id="site-visit" title="本站到访数"><i class="fa fa-user" aria-hidden="true"></i><span id="busuanzi_value_site_uv"></span>
+                        </span>
+                    </span>
+                
+                
+                    <span>| </span>
+                
+                
+                    <span id="busuanzi_container_page_pv" style='display:none'>
+                        <span id="page-visit"  title="本页阅读量"><i class="fa fa-eye animated infinite pulse" aria-hidden="true"></i><span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    </span>
+                
+            </div>
+        
+    </div>
+</footer>
+    </div>
+    
+<script data-main="/js/main.js" src="//cdn.bootcss.com/require.js/2.2.0/require.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var iPad = window.navigator.userAgent.indexOf('iPad');
+            if (iPad > -1 || $(".left-col").css("display") === "none") {
+                var bgColorList = ["#9db3f4", "#414141", "#e5a859", "#f5dfc6", "#c084a0", "#847e72", "#cd8390", "#996731"];
+                var bgColor = Math.ceil(Math.random() * (bgColorList.length - 1));
+                $("body").css({"background-color": bgColorList[bgColor], "background-size": "cover"});
+            }
+            else {
+                var backgroundnum = 5;
+                var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+                $("body").css({"background": backgroundimg, "background-attachment": "fixed", "background-size": "cover"});
+            }
+        })
+    </script>
+
+
+
+
+
+    <script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+    tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    }
+});
+
+MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for(i=0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';                 
+    }       
+});
+</script>
+
+<script src="//cdn.bootcss.com/mathjax/2.6.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<div class="scroll" id="scroll">
+    <a href="#" title="返回顶部"><i class="fa fa-arrow-up"></i></a>
+    <a href="#comments" onclick="load$hide();" title="查看评论"><i class="fa fa-comments-o"></i></a>
+    <a href="#footer" title="转到底部"><i class="fa fa-arrow-down"></i></a>
+</div>
+<script>
+    // Open in New Window
+    
+        var oOpenInNew = {
+            
+            
+            
+            
+            
+            
+             archives: ".archive-article-title", 
+             miniArchives: "a.post-list-link", 
+            
+             friends: "#js-friends a", 
+             socail: ".social a" 
+        }
+        for (var x in oOpenInNew) {
+            $(oOpenInNew[x]).attr("target", "_blank");
+        }
+    
+</script>
+
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+  </div>
+</body>
+</html>

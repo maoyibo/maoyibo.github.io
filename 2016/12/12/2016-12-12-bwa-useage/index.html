@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+
+    <!--[if lt IE 9]>
+        <style>body {display: none; background: none !important} </style>
+        <meta http-equiv="Refresh" Content="0; url=//outdatedbrowser.com/" />
+    <![endif]-->
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="format-detection" content="telephone=no" />
+<meta name="author" content="Mao Yibo" />
+
+
+
+<meta name="description" content="前言Bwa (Burrows-Wheeler Alignment Tool) 是一个将低分散序列比对到人类基因组等大参考基因组的软件包。它由三个算法组成：BWA-backtrack，BWA-SW 和 BWA-MEM。第一个算法BWA-backtrack针对最长 100bp 的 Illumina sequence reads。另外两个算法BWA-SW 和 BWA-MEM针对从70bp 到 1Mbp">
+<meta name="keywords" content="NGS,Mapper,Manual,Commands">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用 bwa 将 reads 比对到参考基因组">
+<meta property="og:url" content="http://maoyibo.tk/2016/12/12/2016-12-12-bwa-useage/index.html">
+<meta property="og:site_name" content="Mao Yibo&#39;s Blog">
+<meta property="og:description" content="前言Bwa (Burrows-Wheeler Alignment Tool) 是一个将低分散序列比对到人类基因组等大参考基因组的软件包。它由三个算法组成：BWA-backtrack，BWA-SW 和 BWA-MEM。第一个算法BWA-backtrack针对最长 100bp 的 Illumina sequence reads。另外两个算法BWA-SW 和 BWA-MEM针对从70bp 到 1Mbp">
+<meta property="og:updated_time" content="2017-06-30T13:09:58.201Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="使用 bwa 将 reads 比对到参考基因组">
+<meta name="twitter:description" content="前言Bwa (Burrows-Wheeler Alignment Tool) 是一个将低分散序列比对到人类基因组等大参考基因组的软件包。它由三个算法组成：BWA-backtrack，BWA-SW 和 BWA-MEM。第一个算法BWA-backtrack针对最长 100bp 的 Illumina sequence reads。另外两个算法BWA-SW 和 BWA-MEM针对从70bp 到 1Mbp">
+
+<link rel="apple-touch-icon" href= "/apple-touch-icon.png">
+
+
+    <link rel="alternate" href="/atom.xml" title="Mao Yibo&#39;s Blog" type="application/atom+xml">
+
+
+
+    <link rel="shortcut icon" href="/favicon.png">
+
+
+
+    <link href="//cdn.bootcss.com/animate.css/3.5.1/animate.min.css" rel="stylesheet">
+
+
+
+    <link href="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet">
+
+
+
+    <script src="//cdn.bootcss.com/pace/1.0.2/pace.min.js"></script>
+    <link href="//cdn.bootcss.com/pace/1.0.2/themes/blue/pace-theme-minimal.css" rel="stylesheet">
+
+
+<link rel="stylesheet" href="/css/style.css">
+
+
+
+<link href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">
+
+
+<title>使用 bwa 将 reads 比对到参考基因组 | Mao Yibo&#39;s Blog</title>
+
+<script src="//cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+<script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
+
+<script>
+    var yiliaConfig = {
+        fancybox: true,
+        animate: true,
+        isHome: false,
+        isPost: true,
+        isArchive: false,
+        isTag: false,
+        isCategory: false,
+        fancybox_js: "//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.js",
+        scrollreveal: "//cdn.bootcss.com/scrollReveal.js/3.1.4/scrollreveal.min.js",
+        search: true
+    }
+</script>
+
+
+    <script>
+        yiliaConfig.jquery_ui = [true, "//cdn.bootcss.com/jqueryui/1.10.4/jquery-ui.min.js", "//cdn.bootcss.com/jqueryui/1.10.4/css/jquery-ui.min.css"];
+    </script>
+
+
+
+    <script> yiliaConfig.rootUrl = "\/";</script>
+
+
+
+
+
+
+</head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+    <header id="header" class="inner">
+        <a href="/" class="profilepic">
+            <img src="/img/avatar.png" class="animated zoomIn">
+        </a>
+        <hgroup>
+          <h1 class="header-author"><a href="/">Mao Yibo</a></h1>
+        </hgroup>
+
+        
+        <p class="header-subtitle">A Notebook for Linux and Bioinformatics.</p>
+        
+
+        
+            <form id="search-form">
+            <input type="text" id="local-search-input" name="q" placeholder="search..." class="search form-control" autocomplete="off" autocorrect="off" searchonload="false" />
+            <i class="fa fa-times" onclick="resetSearch()"></i>
+            </form>
+            <div id="local-search-result"></div>
+            <p class='no-result'>No results found <i class='fa fa-spinner fa-pulse'></i></p>
+        
+
+
+        
+            <div id="switch-btn" class="switch-btn">
+                <div class="icon">
+                    <div class="icon-ctn">
+                        <div class="icon-wrap icon-house" data-idx="0">
+                            <div class="birdhouse"></div>
+                            <div class="birdhouse_holes"></div>
+                        </div>
+                        <div class="icon-wrap icon-ribbon hide" data-idx="1">
+                            <div class="ribbon"></div>
+                        </div>
+                        
+                        <div class="icon-wrap icon-link hide" data-idx="2">
+                            <div class="loopback_l"></div>
+                            <div class="loopback_r"></div>
+                        </div>
+                        
+                        
+                        <div class="icon-wrap icon-me hide" data-idx="3">
+                            <div class="user"></div>
+                            <div class="shoulder"></div>
+                        </div>
+                        
+                    </div>
+                    
+                </div>
+                <div class="tips-box hide">
+                    <div class="tips-arrow"></div>
+                    <ul class="tips-inner">
+                        <li>菜单</li>
+                        <li>标签</li>
+                        
+                        <li>友情链接</li>
+                        
+                        
+                        <li>关于我</li>
+                        
+                    </ul>
+                </div>
+            </div>
+        
+
+        <div id="switch-area" class="switch-area">
+            <div class="switch-wrap">
+                <section class="switch-part switch-part1">
+                    <nav class="header-menu">
+                        <ul>
+                        
+                            <li><a href="/">主页</a></li>
+                        
+                            <li><a href="/archives/">所有文章</a></li>
+                        
+                            <li><a href="/tags/">标签云</a></li>
+                        
+                            <li><a href="/about/">关于我</a></li>
+                        
+                        </ul>
+                    </nav>
+                    <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa Email" href="mailto:&#109;&#97;&#111;&#121;&#105;&#98;&#111;&#64;&#103;&#109;&#97;&#105;&#108;&#46;&#99;&#111;&#109;" title="Email"></a>
+                            
+                                <a class="fa GitHub" href="https://github.com/maoyibo" title="GitHub"></a>
+                            
+                                <a class="fa RSS" href="/atom.xml" title="RSS"></a>
+                            
+                        </ul>
+                    </nav>
+                </section>
+                
+                
+                <section class="switch-part switch-part2">
+                    <div class="widget tagcloud" id="js-tagcloud">
+                        <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Commands/">Commands</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Concepts/">Concepts</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Database/">Database</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Format/">Format</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Installation/">Installation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Manual/">Manual</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mapper/">Mapper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/">MySQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NGS/">NGS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RNASeq/">RNASeq</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SAM/">SAM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SNP/">SNP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SNV/">SNV</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Script/">Script</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Terminologies/">Terminologies</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ubuntu/">Ubuntu</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Unfinished/">Unfinished</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/VCF/">VCF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/机器学习基石/">机器学习基石</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/笔记/">笔记</a></li></ul>
+                    </div>
+                </section>
+                
+                
+                
+                <section class="switch-part switch-part3">
+                    <div id="js-friends">
+                    
+                      <a class="main-nav-link switch-friends-link" href="https://hexo.io">Hexo</a>
+                    
+                      <a class="main-nav-link switch-friends-link" href="https://pages.github.com/">GitHub</a>
+                    
+                      <a class="main-nav-link switch-friends-link" href="http://moxfive.xyz/">MOxFIVE</a>
+                    
+                    </div>
+                </section>
+                
+
+                
+                
+                <section class="switch-part switch-part4">
+                
+                    <div id="js-aboutme">Linux and Bioinformatics</div>
+                </section>
+                
+            </div>
+        </div>
+    </header>                
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+      <div class="overlay">
+          <div class="slider-trigger"></div>
+          <h1 class="header-author js-mobile-header hide"><a href="/" title="回到主页">Mao Yibo</a></h1>
+      </div>
+    <div class="intrude-less">
+        <header id="header" class="inner">
+            <a href="/" class="profilepic">
+                <img src="/img/avatar.png" class="animated zoomIn">
+            </a>
+            <hgroup>
+              <h1 class="header-author"><a href="/" title="回到主页">Mao Yibo</a></h1>
+            </hgroup>
+            
+            <p class="header-subtitle">A Notebook for Linux and Bioinformatics.</p>
+            
+            <nav class="header-menu">
+                <ul>
+                
+                    <li><a href="/">主页</a></li>
+                
+                    <li><a href="/archives/">所有文章</a></li>
+                
+                    <li><a href="/tags/">标签云</a></li>
+                
+                    <li><a href="/about/">关于我</a></li>
+                
+                <div class="clearfix"></div>
+                </ul>
+            </nav>
+            <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa Email" target="_blank" href="mailto:&#109;&#97;&#111;&#121;&#105;&#98;&#111;&#64;&#103;&#109;&#97;&#105;&#108;&#46;&#99;&#111;&#109;" title="Email"></a>
+                            
+                                <a class="fa GitHub" target="_blank" href="https://github.com/maoyibo" title="GitHub"></a>
+                            
+                                <a class="fa RSS" target="_blank" href="/atom.xml" title="RSS"></a>
+                            
+                        </ul>
+            </nav>
+        </header>                
+    </div>
+    <link class="menu-list" tags="标签" friends="友情链接" about="关于我"/>
+</nav>
+      <div class="body-wrap"><article id="post-2016-12-12-bwa-useage" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2016/12/12/2016-12-12-bwa-useage/" class="article-date">
+      <time datetime="2016-12-12T14:02:04.000Z" itemprop="datePublished">2016-12-12</time>
+</a>
+
+
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      使用 bwa 将 reads 比对到参考基因组
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+
+        
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Commands/">Commands</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Manual/">Manual</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Mapper/">Mapper</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/NGS/">NGS</a></li></ul>
+    </div>
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>Bwa (Burrows-Wheeler Alignment Tool) 是一个将低分散序列比对到人类基因组等大参考基因组的软件包。它由三个算法组成：BWA-backtrack，BWA-SW 和 BWA-MEM。第一个算法BWA-backtrack针对最长 100bp 的 Illumina sequence reads。另外两个算法BWA-SW 和 BWA-MEM针对从70bp 到 1Mbp 的长序列。BWA-SW 和 BWA-MEM 具有相同的特征，比如长read的支持，支持分裂比对，但是BWA-MEM是最新的，更快，更精准，推荐用于高质量比对。 BWA-MEM 和 BWA-backtrack 相比处理70-100bp Illumina reads 拥有更好的性能。<br>对于所有的算法，BWA首先需要构建参考基因组的FM-index（使用 index 命令）。比对算法通过调用不同的子命令实现：BWA-backtrack 算法使用aln/samse/sampe，BWA-SW算法使用 bwasw，BWA-MEM 算法使用mem。<br>注：本例使用的bwa版本为：0.7.12-r1039。BWA手册<a href="http://bio-bwa.sourceforge.net/bwa.shtml" target="_blank" rel="external">查看此处</a>。</p>
+<a id="more"></a>  
+<p>bwa的使用需要两种输入文件：<br><strong>Reference genome data (fasta格式 .fa, .fasta, .fna)</strong><br>本文使用的例子是Escherichia coli 参考基因组（gi|15829254|ref|NC_002695.1| Escherichia coli O157:H7 str. Sakai chromosome, complete genome）。<br>文件下载后命名为ecoli.fa</p>
+<p><strong>Short reads data (fastaq格式 .fastaq, .fq)</strong><br>本文使用的read数据是从SRA获得的 SRR2982241 reads数据。  </p>
+<ul>
+<li>Name: NexteraXT</li>
+<li>Instrument: Illumina MiSeq</li>
+<li>Strategy: WGS</li>
+<li>Source: GENOMIC</li>
+<li>Selection: RANDOM</li>
+<li>Layout: PAIRED</li>
+<li>Construction protocol: NexteraXT</li>
+</ul>
+<p>首先使用sratoolkit中的fastq-dump 对下载的 SRR2982241.sra 格式文件转换格式为fastq格式文件，并将序列分开。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ fastq-dump --split-files SRR2982241.sra</div></pre></td></tr></table></figure></p>
+<p>生成文件 SRR2982241_1.fastq 和 SRR2982241_2.fastq</p>
+<h2 id="使用-bwa-index-对参考基因组建立索引"><a href="#使用-bwa-index-对参考基因组建立索引" class="headerlink" title="使用 bwa index 对参考基因组建立索引"></a>使用 bwa index 对参考基因组建立索引</h2><p>bwa index 索引fasta格式的参考基因组序列，其参数如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">$ bwa index</div><div class="line">Usage:   bwa index [options] &lt;in.fasta&gt;</div><div class="line">Options: </div><div class="line">        -a STR    BWT construction algorithm: bwtsw or is [auto]</div><div class="line">                    #BWT构建算法bwtsw 或 is ，默认自动选择</div><div class="line">        -p STR    prefix of the index [same as fasta name]  </div><div class="line">                    #输出的索引的前缀，默认和FASTA文件名相同</div><div class="line">        -b INT    block size for the bwtsw algorithm (effective with -a bwtsw) [10000000]   </div><div class="line">                    #bwtsw算法的块大小，当使用bwtsw算法时生效，默认10000000</div><div class="line">        -6        index files named as &lt;in.fasta&gt;.64.* instead of &lt;in.fasta&gt;.*  </div><div class="line">                    #输出的索引文件名中有.64.标记</div><div class="line">                    </div><div class="line">Warning: `-a bwtsw&apos; does not work for short genomes, while `-a is&apos; and `-a div&apos; do not work not for long genomes.</div><div class="line">#警告：`-a bwtsw&apos;不适用于短基因组，而`-a is&apos;  和 `-a div&apos; 不适用于长基因组</div></pre></td></tr></table></figure></p>
+<p>本例使用的是大肠杆菌基因组，属于short genomes，使用`-a is’参数。使用命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ bwa index -a is ecoli.fa</div></pre></td></tr></table></figure>
+<p>默认生成文件的前缀和输入文件相同，输出文件有:ecoli.fa.ann， ecoli.fa.pac， ecoli.fa.amb， ecoli.fa.bwt， ecoli.fa.sa。</p>
+<h2 id="使用-bwa-aln-定位序列的阵列坐标-（SA-coordinates）"><a href="#使用-bwa-aln-定位序列的阵列坐标-（SA-coordinates）" class="headerlink" title="使用 bwa aln 定位序列的阵列坐标 （SA coordinates）"></a>使用 bwa aln 定位序列的阵列坐标 （SA coordinates）</h2><p>bwa aln 参数：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div></pre></td><td class="code"><pre><div class="line">$ bwa aln</div><div class="line">Usage:   bwa aln [options] &lt;prefix&gt; &lt;in.fq&gt;</div><div class="line">Options: </div><div class="line">        -n NUM      max #diff (int) or missing prob under 0.02 err rate (float) [0.04]</div><div class="line">        -o INT         maximum number or fraction of gap opens [1]</div><div class="line">        -i INT          do not put an indel within INT bp towards the ends [5]</div><div class="line">        -d INT         maximum occurrences for extending a long deletion [10]</div><div class="line">        -l INT          seed length [32]</div><div class="line">        -k INT         maximum differences in the seed [2]</div><div class="line">        -m INT        maximum entries in the queue [2000000]</div><div class="line">        -t INT          number of threads [1] </div><div class="line">                        #指定进程数</div><div class="line">        -M INT        mismatch penalty [3]</div><div class="line">        -O INT        gap open penalty [11]</div><div class="line">        -E INT         gap extension penalty [4]</div><div class="line">        -R INT         stop searching when there are &gt;INT equally best hits [30]</div><div class="line">        -q INT         quality threshold for read trimming down to 35bp [0]</div><div class="line">        -f FILE         file to write output to instead of stdout </div><div class="line">                        #指定输出文件名而不是标准输出</div><div class="line">        -B INT         length of barcode</div><div class="line">        -L                 log-scaled gap penalty for long deletions</div><div class="line">        -N                non-iterative mode: search for all n-difference hits (slooow)</div><div class="line">        -I                 the input is in the Illumina 1.3+ FASTQ-like format</div><div class="line">                        #输入文件是 Illumina 1.3+FASTQ-like格式</div><div class="line">        -b                the input read file is in the BAM format</div><div class="line">                        #输入的read是BAM格式</div><div class="line">        -0                use single-end reads only (effective with -b)</div><div class="line">                        #只使用单末端，使用-b时有效</div><div class="line">        -1                use the 1st read in a pair (effective with -b)</div><div class="line">                        #使用末端配对的第一个read，使用-b时有效</div><div class="line">        -2                use the 2nd read in a pair (effective with -b)</div><div class="line">                        #使用末端配对的第二个read，使用-b时有效</div><div class="line">        -Y                filter Casava-filtered sequences</div></pre></td></tr></table></figure></p>
+<p>对于Paired-end reads，使用8进程运行，使用命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">$ bwa aln -t 8 -f SRR2982241_1.sai ecoli.fa SRR2982241_1.fastq </div><div class="line">$ bwa aln -t 8 -f SRR2982241_2.sai ecoli.fa SRR2982241_2.fastq</div></pre></td></tr></table></figure>
+<p>对于Single reads，使用命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ bwa aln -t 8 -f SRR1234567.sai refseq.fa SRR1234567.fastq</div></pre></td></tr></table></figure>
+<h2 id="使用-bwa-sampe-或-bwa-samse-转换序列阵列坐标并输出sam"><a href="#使用-bwa-sampe-或-bwa-samse-转换序列阵列坐标并输出sam" class="headerlink" title="使用 bwa sampe 或 bwa samse 转换序列阵列坐标并输出sam"></a>使用 bwa sampe 或 bwa samse 转换序列阵列坐标并输出sam</h2><p>bwa sampe 和 bwa samse 参数<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line">Paired-end reads:</div><div class="line">$ bwa sampe</div><div class="line">Usage:   bwa sampe [options] &lt;prefix&gt; &lt;in1.sai&gt; &lt;in2.sai&gt; &lt;in1.fq&gt; &lt;in2.fq&gt;</div><div class="line">Options: </div><div class="line">        -a INT   maximum insert size [500]</div><div class="line">        -o INT   maximum occurrences <span class="keyword">for</span> one end [100000]</div><div class="line">        -n INT   maximum hits to output <span class="keyword">for</span> paired reads [3]</div><div class="line">        -N INT   maximum hits to output <span class="keyword">for</span> discordant pairs [10]</div><div class="line">        -c FLOAT prior of chimeric rate (lower bound) [1.0e-05]</div><div class="line">        -f FILE  sam file to output results to [stdout]</div><div class="line">        <span class="comment">#定输出sam文件而不是标准输出</span></div><div class="line">        -r STR   <span class="built_in">read</span> group header line such as `@RG\tID:foo\tSM:bar<span class="string">' [null]</span></div><div class="line">        -P       preload index into memory (for base-space reads only)</div><div class="line">        -s       disable Smith-Waterman for the unmapped mate</div><div class="line">        -A       disable insert size estimate (force -s)</div><div class="line">Notes:</div><div class="line">    1. For SOLiD reads, &lt;in1.fq&gt; corresponds R3 reads and &lt;in2.fq&gt; to F3.</div><div class="line">    2. For reads shorter than 30bp, applying a smaller -o is recommended get a sensible speed at the cost of pairing accuracy.</div><div class="line"></div><div class="line">Single reads:</div><div class="line">$ bwa samse</div><div class="line">Usage: bwa samse [-n max_occ] [-f out.sam] [-r RG_line] &lt;prefix&gt; &lt;in.sai&gt; &lt;in.fq&gt;</div></pre></td></tr></table></figure></p>
+<p>本例是Paired-end reads，使用命令：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ bwa sampe -f paired-end.sam ecoli.fa SRR2982241_1.sai SRR2982241_2.sai SRR2982241_1.fastq SRR2982241_2.fastq</div></pre></td></tr></table></figure>
+<p>对于Single reads，使用命令：  </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ bwa samse -f single_reads.sam refseq.fa SRR1234567.sai SRR1234567.fastq</div></pre></td></tr></table></figure>
+
+      
+    </div>
+    
+  </div>
+  
+    
+    <div class="copyright">
+        <p><span>本文标题:</span><a href="/2016/12/12/2016-12-12-bwa-useage/">使用 bwa 将 reads 比对到参考基因组</a></p>
+        <p><span>文章作者:</span><a href="/" title="回到主页">Mao Yibo</a></p>
+        <p><span>发布时间:</span>2016-12-12, 22:02:04</p>
+        <p><span>最后更新:</span>2017-06-30, 21:09:58</p>
+        <p>
+            <span>原始链接:</span><a class="post-url" href="/2016/12/12/2016-12-12-bwa-useage/" title="使用 bwa 将 reads 比对到参考基因组">http://maoyibo.tk/2016/12/12/2016-12-12-bwa-useage/</a>
+            <span class="copy-path" data-clipboard-text="原文: http://maoyibo.tk/2016/12/12/2016-12-12-bwa-useage/　　作者: Mao Yibo" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
+            <script> var clipboard = new Clipboard('.copy-path'); </script>
+        </p>
+        <p>
+            <span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/" title="CC BY-NC-SA 4.0 International" target = "_blank">"署名-非商用-相同方式共享 4.0"</a> 转载请保留原文链接及作者。
+        </p>
+    </div>
+
+
+
+    <nav id="article-nav">
+        
+            <div id="article-nav-newer" class="article-nav-title">
+                <a href="/2016/12/13/2016-12-13-samtools-useage/">
+                    使用samtools发现SNPs
+                </a>
+            </div>
+        
+        
+            <div id="article-nav-older" class="article-nav-title">
+                <a href="/2016/12/11/2016-12-11-MLF-1/">
+                    机器学习基石  第一节 The Learning Problem
+                </a>
+            </div>
+        
+    </nav>
+
+  
+</article>
+
+    <div id="toc" class="toc-article">
+        <strong class="toc-title">文章目录</strong>
+        
+            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#前言"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#使用-bwa-index-对参考基因组建立索引"><span class="toc-number">2.</span> <span class="toc-text">使用 bwa index 对参考基因组建立索引</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#使用-bwa-aln-定位序列的阵列坐标-（SA-coordinates）"><span class="toc-number">3.</span> <span class="toc-text">使用 bwa aln 定位序列的阵列坐标 （SA coordinates）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#使用-bwa-sampe-或-bwa-samse-转换序列阵列坐标并输出sam"><span class="toc-number">4.</span> <span class="toc-text">使用 bwa sampe 或 bwa samse 转换序列阵列坐标并输出sam</span></a></li></ol>
+        
+    </div>
+    <style>
+        .left-col .switch-btn,
+        .left-col .switch-area {
+            display: none;
+        }
+        .toc-level-3 i,
+        .toc-level-3 ol {
+            display: none !important;
+        }
+    </style>
+
+    <input type="button" id="tocButton" value="隐藏目录"  title="点击按钮隐藏或者显示文章目录">
+
+    <script>
+        yiliaConfig.toc = ["隐藏目录", "显示目录", !!"false"];
+    </script>
+
+
+
+    
+<div class="share">
+    
+        <div class="bdsharebuttonbox">
+            <a href="#" class="fa fa-twitter bds_twi" data-cmd="twi" title="分享到推特"></a>
+            <a href="#" class="fa fa-weibo bds_tsina" data-cmd="tsina" title="分享到新浪微博"></a>
+            <a href="#" class="fa fa-qq bds_sqq" data-cmd="sqq" title="分享给 QQ 好友"></a>
+            <a href="#" class="fa fa-files-o bds_copy" data-cmd="copy" title="复制网址"></a>
+            <a href="#" class="fa fa fa-envelope-o bds_mail" data-cmd="mail" title="通过邮件分享"></a>
+            <a href="#" class="fa fa-weixin bds_weixin" data-cmd="weixin" title="生成文章二维码"></a>
+            <a href="#" class="fa fa-share-alt bds_more" data-cmd="more"></i></a>
+        </div>
+        <script>
+            window._bd_share_config={
+                "common":{"bdSnsKey":{},"bdText":"使用 bwa 将 reads 比对到参考基因组　| Mao Yibo's Blog　","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"24"},"share":{}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+        </script>
+    
+
+    
+</div>
+
+
+
+
+
+
+
+    
+
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/2016/12/13/2016-12-13-samtools-useage/" title="上一篇: 使用samtools发现SNPs">
+                <i class="fa fa-angle-left"></i>
+            </a>
+        
+
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+
+        
+            <a href="/2016/12/11/2016-12-11-MLF-1/" title="下一篇: 机器学习基石  第一节 The Learning Problem">
+                <i class="fa fa-angle-right"></i>
+            </a>
+        
+    </div>
+
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2016/12/28/2016-12-28-VCF-Format/">VCF 4.1版本 格式介绍</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/27/2016-12-27-ubuntu-mysql-install/">Ubuntu 安装 MySQL 简便方法</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/26/2016-12-26-tophat-useage/">TopHat使用方法</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/25/2016-12-25-SAM-Format/">SAM 格式介绍</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/24/2016-12-24-Bowtie2-useage/">使用 Bowtie2 将reads 比对到参考基因组</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/20/2016-12-20-NGS-Terminologies-and-Concepts/">NGS Terminologies and Concepts</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/13/2016-12-13-samtools-useage/">使用samtools发现SNPs</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/12/2016-12-12-bwa-useage/">使用 bwa 将 reads 比对到参考基因组</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/11/2016-12-11-MLF-1/">机器学习基石  第一节 The Learning Problem</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/10/2016-12-10-Ubuntu-Dependence-Installation/">Ubuntu Dependence Installation</a></li></ul>
+
+
+
+
+    <script>
+        
+    </script>
+</div>
+      <footer id="footer">
+    <div class="outer">
+        <div id="footer-info">
+            <div class="footer-left">
+                <i class="fa fa-copyright"></i> 
+                2016-2017 Mao Yibo
+            </div>
+            <div class="footer-right">
+                <a href="http://hexo.io/" target="_blank" title="快速、简洁且高效的博客框架">Hexo</a>  Theme <a href="https://github.com/MOxFIVE/hexo-theme-yelee" target="_blank" title="简而不减 Hexo 双栏博客主题  v3.5">Yelee</a> by MOxFIVE <i class="fa fa-heart animated infinite pulse"></i>
+            </div>
+        </div>
+        
+            <div class="visit">
+                
+                    <span id="busuanzi_container_site_pv" style='display:none'>
+                        <span id="site-visit" title="本站到访数"><i class="fa fa-user" aria-hidden="true"></i><span id="busuanzi_value_site_uv"></span>
+                        </span>
+                    </span>
+                
+                
+                    <span>| </span>
+                
+                
+                    <span id="busuanzi_container_page_pv" style='display:none'>
+                        <span id="page-visit"  title="本页阅读量"><i class="fa fa-eye animated infinite pulse" aria-hidden="true"></i><span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    </span>
+                
+            </div>
+        
+    </div>
+</footer>
+    </div>
+    
+<script data-main="/js/main.js" src="//cdn.bootcss.com/require.js/2.2.0/require.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var iPad = window.navigator.userAgent.indexOf('iPad');
+            if (iPad > -1 || $(".left-col").css("display") === "none") {
+                var bgColorList = ["#9db3f4", "#414141", "#e5a859", "#f5dfc6", "#c084a0", "#847e72", "#cd8390", "#996731"];
+                var bgColor = Math.ceil(Math.random() * (bgColorList.length - 1));
+                $("body").css({"background-color": bgColorList[bgColor], "background-size": "cover"});
+            }
+            else {
+                var backgroundnum = 5;
+                var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+                $("body").css({"background": backgroundimg, "background-attachment": "fixed", "background-size": "cover"});
+            }
+        })
+    </script>
+
+
+
+
+
+    <script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+    tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    }
+});
+
+MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for(i=0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';                 
+    }       
+});
+</script>
+
+<script src="//cdn.bootcss.com/mathjax/2.6.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<div class="scroll" id="scroll">
+    <a href="#" title="返回顶部"><i class="fa fa-arrow-up"></i></a>
+    <a href="#comments" onclick="load$hide();" title="查看评论"><i class="fa fa-comments-o"></i></a>
+    <a href="#footer" title="转到底部"><i class="fa fa-arrow-down"></i></a>
+</div>
+<script>
+    // Open in New Window
+    
+        var oOpenInNew = {
+            
+            
+            
+            
+            
+            
+             archives: ".archive-article-title", 
+             miniArchives: "a.post-list-link", 
+            
+             friends: "#js-friends a", 
+             socail: ".social a" 
+        }
+        for (var x in oOpenInNew) {
+            $(oOpenInNew[x]).attr("target", "_blank");
+        }
+    
+</script>
+
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+  </div>
+</body>
+</html>

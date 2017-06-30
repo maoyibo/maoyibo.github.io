@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+
+    <!--[if lt IE 9]>
+        <style>body {display: none; background: none !important} </style>
+        <meta http-equiv="Refresh" Content="0; url=//outdatedbrowser.com/" />
+    <![endif]-->
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="format-detection" content="telephone=no" />
+<meta name="author" content="Mao Yibo" />
+
+
+
+<meta name="description" content="TopHat是一个将RNA-Seq reads 比对到基因组上，来鉴定外显子-外显子剪接点的程序，其基于超快速短read mapping 程序 Bowtie。TopHat 被设计用于Illumina Genome Analyzer所产生的reads，但是用户也成功地将其用于其他技术产生的reads。此软件1.1.0版本开始可以支持 Applied Biosystems 公司的 Colorspace">
+<meta name="keywords" content="NGS,Mapper,Manual,Commands,Unfinished,RNASeq">
+<meta property="og:type" content="article">
+<meta property="og:title" content="TopHat使用方法">
+<meta property="og:url" content="http://maoyibo.tk/2016/12/26/2016-12-26-tophat-useage/index.html">
+<meta property="og:site_name" content="Mao Yibo&#39;s Blog">
+<meta property="og:description" content="TopHat是一个将RNA-Seq reads 比对到基因组上，来鉴定外显子-外显子剪接点的程序，其基于超快速短read mapping 程序 Bowtie。TopHat 被设计用于Illumina Genome Analyzer所产生的reads，但是用户也成功地将其用于其他技术产生的reads。此软件1.1.0版本开始可以支持 Applied Biosystems 公司的 Colorspace">
+<meta property="og:updated_time" content="2017-06-30T13:10:26.081Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="TopHat使用方法">
+<meta name="twitter:description" content="TopHat是一个将RNA-Seq reads 比对到基因组上，来鉴定外显子-外显子剪接点的程序，其基于超快速短read mapping 程序 Bowtie。TopHat 被设计用于Illumina Genome Analyzer所产生的reads，但是用户也成功地将其用于其他技术产生的reads。此软件1.1.0版本开始可以支持 Applied Biosystems 公司的 Colorspace">
+
+<link rel="apple-touch-icon" href= "/apple-touch-icon.png">
+
+
+    <link rel="alternate" href="/atom.xml" title="Mao Yibo&#39;s Blog" type="application/atom+xml">
+
+
+
+    <link rel="shortcut icon" href="/favicon.png">
+
+
+
+    <link href="//cdn.bootcss.com/animate.css/3.5.1/animate.min.css" rel="stylesheet">
+
+
+
+    <link href="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet">
+
+
+
+    <script src="//cdn.bootcss.com/pace/1.0.2/pace.min.js"></script>
+    <link href="//cdn.bootcss.com/pace/1.0.2/themes/blue/pace-theme-minimal.css" rel="stylesheet">
+
+
+<link rel="stylesheet" href="/css/style.css">
+
+
+
+<link href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">
+
+
+<title>TopHat使用方法 | Mao Yibo&#39;s Blog</title>
+
+<script src="//cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+<script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
+
+<script>
+    var yiliaConfig = {
+        fancybox: true,
+        animate: true,
+        isHome: false,
+        isPost: true,
+        isArchive: false,
+        isTag: false,
+        isCategory: false,
+        fancybox_js: "//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.js",
+        scrollreveal: "//cdn.bootcss.com/scrollReveal.js/3.1.4/scrollreveal.min.js",
+        search: true
+    }
+</script>
+
+
+    <script>
+        yiliaConfig.jquery_ui = [true, "//cdn.bootcss.com/jqueryui/1.10.4/jquery-ui.min.js", "//cdn.bootcss.com/jqueryui/1.10.4/css/jquery-ui.min.css"];
+    </script>
+
+
+
+    <script> yiliaConfig.rootUrl = "\/";</script>
+
+
+
+
+
+
+</head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+    <header id="header" class="inner">
+        <a href="/" class="profilepic">
+            <img src="/img/avatar.png" class="animated zoomIn">
+        </a>
+        <hgroup>
+          <h1 class="header-author"><a href="/">Mao Yibo</a></h1>
+        </hgroup>
+
+        
+        <p class="header-subtitle">A Notebook for Linux and Bioinformatics.</p>
+        
+
+        
+            <form id="search-form">
+            <input type="text" id="local-search-input" name="q" placeholder="search..." class="search form-control" autocomplete="off" autocorrect="off" searchonload="false" />
+            <i class="fa fa-times" onclick="resetSearch()"></i>
+            </form>
+            <div id="local-search-result"></div>
+            <p class='no-result'>No results found <i class='fa fa-spinner fa-pulse'></i></p>
+        
+
+
+        
+            <div id="switch-btn" class="switch-btn">
+                <div class="icon">
+                    <div class="icon-ctn">
+                        <div class="icon-wrap icon-house" data-idx="0">
+                            <div class="birdhouse"></div>
+                            <div class="birdhouse_holes"></div>
+                        </div>
+                        <div class="icon-wrap icon-ribbon hide" data-idx="1">
+                            <div class="ribbon"></div>
+                        </div>
+                        
+                        <div class="icon-wrap icon-link hide" data-idx="2">
+                            <div class="loopback_l"></div>
+                            <div class="loopback_r"></div>
+                        </div>
+                        
+                        
+                        <div class="icon-wrap icon-me hide" data-idx="3">
+                            <div class="user"></div>
+                            <div class="shoulder"></div>
+                        </div>
+                        
+                    </div>
+                    
+                </div>
+                <div class="tips-box hide">
+                    <div class="tips-arrow"></div>
+                    <ul class="tips-inner">
+                        <li>菜单</li>
+                        <li>标签</li>
+                        
+                        <li>友情链接</li>
+                        
+                        
+                        <li>关于我</li>
+                        
+                    </ul>
+                </div>
+            </div>
+        
+
+        <div id="switch-area" class="switch-area">
+            <div class="switch-wrap">
+                <section class="switch-part switch-part1">
+                    <nav class="header-menu">
+                        <ul>
+                        
+                            <li><a href="/">主页</a></li>
+                        
+                            <li><a href="/archives/">所有文章</a></li>
+                        
+                            <li><a href="/tags/">标签云</a></li>
+                        
+                            <li><a href="/about/">关于我</a></li>
+                        
+                        </ul>
+                    </nav>
+                    <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa Email" href="mailto:&#109;&#97;&#111;&#121;&#105;&#98;&#111;&#64;&#103;&#109;&#97;&#105;&#108;&#46;&#99;&#111;&#109;" title="Email"></a>
+                            
+                                <a class="fa GitHub" href="https://github.com/maoyibo" title="GitHub"></a>
+                            
+                                <a class="fa RSS" href="/atom.xml" title="RSS"></a>
+                            
+                        </ul>
+                    </nav>
+                </section>
+                
+                
+                <section class="switch-part switch-part2">
+                    <div class="widget tagcloud" id="js-tagcloud">
+                        <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Commands/">Commands</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Concepts/">Concepts</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Database/">Database</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Format/">Format</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Installation/">Installation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Manual/">Manual</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mapper/">Mapper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/">MySQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NGS/">NGS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RNASeq/">RNASeq</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SAM/">SAM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SNP/">SNP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SNV/">SNV</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Script/">Script</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Terminologies/">Terminologies</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ubuntu/">Ubuntu</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Unfinished/">Unfinished</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/VCF/">VCF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/机器学习基石/">机器学习基石</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/笔记/">笔记</a></li></ul>
+                    </div>
+                </section>
+                
+                
+                
+                <section class="switch-part switch-part3">
+                    <div id="js-friends">
+                    
+                      <a class="main-nav-link switch-friends-link" href="https://hexo.io">Hexo</a>
+                    
+                      <a class="main-nav-link switch-friends-link" href="https://pages.github.com/">GitHub</a>
+                    
+                      <a class="main-nav-link switch-friends-link" href="http://moxfive.xyz/">MOxFIVE</a>
+                    
+                    </div>
+                </section>
+                
+
+                
+                
+                <section class="switch-part switch-part4">
+                
+                    <div id="js-aboutme">Linux and Bioinformatics</div>
+                </section>
+                
+            </div>
+        </div>
+    </header>                
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+      <div class="overlay">
+          <div class="slider-trigger"></div>
+          <h1 class="header-author js-mobile-header hide"><a href="/" title="回到主页">Mao Yibo</a></h1>
+      </div>
+    <div class="intrude-less">
+        <header id="header" class="inner">
+            <a href="/" class="profilepic">
+                <img src="/img/avatar.png" class="animated zoomIn">
+            </a>
+            <hgroup>
+              <h1 class="header-author"><a href="/" title="回到主页">Mao Yibo</a></h1>
+            </hgroup>
+            
+            <p class="header-subtitle">A Notebook for Linux and Bioinformatics.</p>
+            
+            <nav class="header-menu">
+                <ul>
+                
+                    <li><a href="/">主页</a></li>
+                
+                    <li><a href="/archives/">所有文章</a></li>
+                
+                    <li><a href="/tags/">标签云</a></li>
+                
+                    <li><a href="/about/">关于我</a></li>
+                
+                <div class="clearfix"></div>
+                </ul>
+            </nav>
+            <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa Email" target="_blank" href="mailto:&#109;&#97;&#111;&#121;&#105;&#98;&#111;&#64;&#103;&#109;&#97;&#105;&#108;&#46;&#99;&#111;&#109;" title="Email"></a>
+                            
+                                <a class="fa GitHub" target="_blank" href="https://github.com/maoyibo" title="GitHub"></a>
+                            
+                                <a class="fa RSS" target="_blank" href="/atom.xml" title="RSS"></a>
+                            
+                        </ul>
+            </nav>
+        </header>                
+    </div>
+    <link class="menu-list" tags="标签" friends="友情链接" about="关于我"/>
+</nav>
+      <div class="body-wrap"><article id="post-2016-12-26-tophat-useage" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2016/12/26/2016-12-26-tophat-useage/" class="article-date">
+      <time datetime="2016-12-26T13:53:35.000Z" itemprop="datePublished">2016-12-26</time>
+</a>
+
+
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      TopHat使用方法
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+
+        
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Commands/">Commands</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Manual/">Manual</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Mapper/">Mapper</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/NGS/">NGS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/RNASeq/">RNASeq</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Unfinished/">Unfinished</a></li></ul>
+    </div>
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <p>TopHat是一个将RNA-Seq reads 比对到基因组上，来鉴定外显子-外显子剪接点的程序，其基于超快速短read mapping 程序 Bowtie。<br>TopHat 被设计用于Illumina Genome Analyzer所产生的reads，但是用户也成功地将其用于其他技术产生的reads。此软件1.1.0版本开始可以支持 Applied Biosystems 公司的 Colorspace format。此软件针对75bp或者更长的reads进行了优化。<br>注：本例使用的TopHat版本是：v2.1.0 。TopHat手册<a href="http://ccb.jhu.edu/software/tophat/manual.shtml" title="tophat manual" target="_blank" rel="external">查看此处</a>  </p>
+<a id="more"></a>  
+<h2 id="TopHat如何寻找剪接点"><a href="#TopHat如何寻找剪接点" class="headerlink" title="TopHat如何寻找剪接点"></a>TopHat如何寻找剪接点</h2><p>TopHat可以在没有参考注释的情况下寻找剪接点。通过首先将RNA-Seq reads比对到基因组，TopHat鉴定潜在的基因组，因为许多RNA-Seq reads 可以连续地比对到基因组上。使用这些最初的比对信息，TopHat构建可能的剪接点的数据库，然后比reads到到这些剪接点来确认他们。<br>当前的测序仪可以产生100bp 或更长的reads。但是许多外显子比这个长度更短，所以这些外显子可能在第一轮的mapping中被忽视。TopHat 通过将输入reads切割成更小的片段独立比对来解决这个问题。片段的比对在程序的最后一步放在一起产生end-to-end reads 比对。<br>TopHat产生可能剪接点的数据库从两个证据来源。一个剪接点的第一个也是最强的证据来源是当同一个read（最短45bp）的两个片段在同一个基因组系列比对到一个具体的距离，或者当一个内部片段不能比对表示这些reads跨越多个外显子。通过这些手段，可以从头开始发现 “GT-AG”, “GC-AG” 和 “AT-AC” 内含子。第二个证据来源是“覆盖岛”的配对，他们是在初始mapping 中不同的reads 对叠区域，相邻的岛经常在转录组中连接在一起，这样TopHat寻找方法来连接他们和一个内含子。只推荐用户对短的read (&lt; 45bp)，和小数目的reads (&lt;= 10 million) 使用第二个选项(–coverage-search) 。这个选项只报告跨过”GT-AG” 内含子的比对。</p>
+<h2 id="使用TopHat"><a href="#使用TopHat" class="headerlink" title="使用TopHat"></a>使用TopHat</h2><p>TopHat 的参数：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div></pre></td><td class="code"><pre><div class="line">$ tophat2 -h</div><div class="line">TopHat maps short sequences from spliced transcripts to whole genomes.</div><div class="line">Usage:</div><div class="line">    tophat [options] &lt;bowtie_index&gt; &lt;reads1[,reads2,...]&gt; [reads1[,reads2,...]] [quals1,[quals2,...]] [quals1[,quals2,...]]</div><div class="line">    <span class="comment">#bowtie_index  基因组索引的路径和basename</span></div><div class="line">    <span class="comment">#reads*  一个包含reads的文件，可以是fastq格式或者fasta格式</span></div><div class="line">    <span class="comment">#quals* 与fasta文件对应的质量文件</span></div><div class="line">Options:</div><div class="line">    -v/--version    <span class="comment">#版本</span></div><div class="line">    -o/--output-dir                &lt;string&gt;    [ default: ./tophat_out ] <span class="comment">#输出文件目录，默认 ./tophat_out</span></div><div class="line">    --bowtie1                                  [ default: bowtie2 ] <span class="comment">#使用bowtie1,默认bowtie2</span></div><div class="line">    -N/--<span class="built_in">read</span>-mismatches           &lt;int&gt;       [ default: 2 ]</div><div class="line">    --<span class="built_in">read</span>-gap-length              &lt;int&gt;       [ default: 2 ]</div><div class="line">    --<span class="built_in">read</span>-edit-dist               &lt;int&gt;       [ default: 2 ]</div><div class="line">    --<span class="built_in">read</span>-realign-edit-dist       &lt;int&gt;       [ default: <span class="string">"read-edit-dist"</span> + 1 ]</div><div class="line">    -a/--min-anchor                &lt;int&gt;       [ default: 8 ]</div><div class="line">    -m/--splice-mismatches         &lt;0-2&gt;       [ default: 0 ]</div><div class="line">    -i/--min-intron-length         &lt;int&gt;       [ default: 50 ]</div><div class="line">    -I/--max-intron-length         &lt;int&gt;       [ default: 500000  ]</div><div class="line">    -g/--max-multihits             &lt;int&gt;       [ default: 20 ]</div><div class="line">    --suppress-hits</div><div class="line">    -x/--transcriptome-max-hits    &lt;int&gt;       [ default: 60 ]</div><div class="line">    -M/--prefilter-multihits                   ( <span class="keyword">for</span> -G/--GTF option, <span class="built_in">enable</span> an initial bowtie search against the genome )</div><div class="line">    --max-insertion-length         &lt;int&gt;       [ default: 3 ]</div><div class="line">    --max-deletion-length          &lt;int&gt;       [ default: 3 ]</div><div class="line">    --solexa-quals      <span class="comment">#使用solexa分数</span></div><div class="line">    --solexa1.3-quals                          (same as phred64-quals) <span class="comment">#使用solexa1.3分数</span></div><div class="line">    --phred64-quals                            (same as solexa1.3-quals) <span class="comment">#使用phred64分数</span></div><div class="line">    -Q/--quals      <span class="comment">#分数</span></div><div class="line">    --<span class="built_in">integer</span>-quals     <span class="comment">#证书分数</span></div><div class="line">    -C/--color                                 (Solid - color space) <span class="comment">#Solid-色彩空间</span></div><div class="line">    --color-out     </div><div class="line">    --library-type                 &lt;string&gt;    (fr-unstranded, fr-firststrand, fr-secondstrand)</div><div class="line">    -p/--num-threads               &lt;int&gt;       [ default: 1 ]</div><div class="line">    -R/--resume                    &lt;out_dir&gt;   ( try to resume execution )</div><div class="line">    -G/--GTF                       &lt;filename&gt;  (GTF/GFF with known transcripts)</div><div class="line">    --transcriptome-index          &lt;bwtidx&gt;    (transcriptome bowtie index)</div><div class="line">    -T/--transcriptome-only                    (map only to the transcriptome)</div><div class="line">    -j/--raw-juncs                 &lt;filename&gt;   <span class="comment">#未处理的剪切点</span></div><div class="line">    --insertions                   &lt;filename&gt;</div><div class="line">    --deletions                    &lt;filename&gt;</div><div class="line">    -r/--mate-inner-dist           &lt;int&gt;       [ default: 50 ]</div><div class="line">    --mate-std-dev                 &lt;int&gt;       [ default: 20 ]</div><div class="line">    --no-novel-juncs</div><div class="line">    --no-novel-indels</div><div class="line">    --no-gtf-juncs</div><div class="line">    --no-coverage-search</div><div class="line">    --coverage-search</div><div class="line">    --microexon-search</div><div class="line">    --keep-tmp</div><div class="line">    --tmp-dir                      &lt;dirname&gt;   [ default: &lt;output_dir&gt;/tmp ]</div><div class="line">    -z/--zpacker                   &lt;program&gt;   [ default: gzip ]</div><div class="line">    -X/--unmapped-fifo                         [use mkfifo to compress more temporary files <span class="keyword">for</span> color space reads]</div><div class="line">Advanced Options:</div><div class="line">    --report-secondary-alignments</div><div class="line">    --no-discordant</div><div class="line">    --no-mixed</div><div class="line">    --segment-mismatches           &lt;int&gt;       [ default: 2 ]</div><div class="line">    --segment-length               &lt;int&gt;       [ default: 25 ] <span class="comment">#片段长度</span></div><div class="line">    --bowtie-n                                 [ default: bowtie -v ]</div><div class="line">    --min-coverage-intron          &lt;int&gt;       [ default: 50 ]</div><div class="line">    --max-coverage-intron          &lt;int&gt;       [ default: 20000 ]</div><div class="line">    --min-segment-intron           &lt;int&gt;       [ default: 50 ]</div><div class="line">    --max-segment-intron           &lt;int&gt;       [ default: 500000 ]</div><div class="line">    --no-sort-bam                              (Output BAM is not coordinate-sorted)</div><div class="line">    --no-convert-bam                           (Do not output bam format. Output is &lt;output_dir&gt;/accepted_hits.sam)</div><div class="line">    --keep-fasta-order</div><div class="line">    --allow-partial-mapping</div><div class="line">Bowtie2 related options:</div><div class="line">  Preset options <span class="keyword">in</span> --end-to-end mode (<span class="built_in">local</span> alignment is not used <span class="keyword">in</span> TopHat2) <span class="comment">#预设的选项是 --end-to-end模式，(local alignment在TopHat2中不能被使用)</span></div><div class="line">    --b2-very-fast</div><div class="line">    --b2-fast</div><div class="line">    --b2-sensitive</div><div class="line">    --b2-very-sensitive</div><div class="line">  Alignment options</div><div class="line">    --b2-N                         &lt;int&gt;       [ default: 0 ]</div><div class="line">    --b2-L                         &lt;int&gt;       [ default: 20 ]</div><div class="line">    --b2-i                         &lt;func&gt;      [ default: S,1,1.25 ]</div><div class="line">    --b2-n-ceil                    &lt;func&gt;      [ default: L,0,0.15 ]</div><div class="line">    --b2-gbar                      &lt;int&gt;       [ default: 4 ]</div><div class="line">  Scoring options</div><div class="line">    --b2-mp                        &lt;int&gt;,&lt;int&gt; [ default: 6,2 ]</div><div class="line">    --b2-np                        &lt;int&gt;       [ default: 1 ]</div><div class="line">    --b2-rdg                       &lt;int&gt;,&lt;int&gt; [ default: 5,3 ]</div><div class="line">    --b2-rfg                       &lt;int&gt;,&lt;int&gt; [ default: 5,3 ]</div><div class="line">    --b2-score-min                 &lt;func&gt;      [ default: L,-0.6,-0.6 ]</div><div class="line">  Effort options</div><div class="line">    --b2-D                         &lt;int&gt;       [ default: 15 ]</div><div class="line">    --b2-R                         &lt;int&gt;       [ default: 2 ]</div><div class="line">Fusion related options:</div><div class="line">    --fusion-search</div><div class="line">    --fusion-anchor-length         &lt;int&gt;       [ default: 20 ]</div><div class="line">    --fusion-min-dist              &lt;int&gt;       [ default: 10000000 ]</div><div class="line">    --fusion-read-mismatches       &lt;int&gt;       [ default: 2 ]</div><div class="line">    --fusion-multireads            &lt;int&gt;       [ default: 2 ]</div><div class="line">    --fusion-multipairs            &lt;int&gt;       [ default: 2 ]</div><div class="line">    --fusion-ignore-chromosomes    &lt;list&gt;      [ e.g, &lt;chrM,chrX&gt; ]</div><div class="line">    --fusion-do-not-resolve-conflicts          [this is <span class="keyword">for</span> <span class="built_in">test</span> purposes ]</div><div class="line">SAM Header Options (<span class="keyword">for</span> embedding sequencing run metadata <span class="keyword">in</span> output):</div><div class="line">    --rg-id                        &lt;string&gt;    (<span class="built_in">read</span> group ID)</div><div class="line">    --rg-sample                    &lt;string&gt;    (sample ID)</div><div class="line">    --rg-library                   &lt;string&gt;    (library ID)</div><div class="line">    --rg-description               &lt;string&gt;    (descriptive string, no tabs allowed)</div><div class="line">    --rg-platform-unit             &lt;string&gt;    (e.g Illumina lane ID)</div><div class="line">    --rg-center                    &lt;string&gt;    (sequencing center name)</div><div class="line">    --rg-date                      &lt;string&gt;    (ISO 8601 date of the sequencing run)</div><div class="line">    --rg-platform                  &lt;string&gt;    (Sequencing platform descriptor)</div><div class="line">    <span class="keyword">for</span> detailed <span class="built_in">help</span> see http://tophat.cbcb.umd.edu/manual.html</div></pre></td></tr></table></figure></p>
+<p>当使用TopHat处理双末端reads时 将 *_1文件和 *_2文件放到不同的以逗号分割的文件列表，两个列表中文件的顺序应当一致。<br>TopHat允许用户在配对reads之后使用附加的未配对的reads。TopHat在2.0.10版本之后支持混合格式输入，但是不推荐。</p>
+<p>未完待续……</p>
+
+      
+    </div>
+    
+  </div>
+  
+    
+    <div class="copyright">
+        <p><span>本文标题:</span><a href="/2016/12/26/2016-12-26-tophat-useage/">TopHat使用方法</a></p>
+        <p><span>文章作者:</span><a href="/" title="回到主页">Mao Yibo</a></p>
+        <p><span>发布时间:</span>2016-12-26, 21:53:35</p>
+        <p><span>最后更新:</span>2017-06-30, 21:10:26</p>
+        <p>
+            <span>原始链接:</span><a class="post-url" href="/2016/12/26/2016-12-26-tophat-useage/" title="TopHat使用方法">http://maoyibo.tk/2016/12/26/2016-12-26-tophat-useage/</a>
+            <span class="copy-path" data-clipboard-text="原文: http://maoyibo.tk/2016/12/26/2016-12-26-tophat-useage/　　作者: Mao Yibo" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
+            <script> var clipboard = new Clipboard('.copy-path'); </script>
+        </p>
+        <p>
+            <span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/" title="CC BY-NC-SA 4.0 International" target = "_blank">"署名-非商用-相同方式共享 4.0"</a> 转载请保留原文链接及作者。
+        </p>
+    </div>
+
+
+
+    <nav id="article-nav">
+        
+            <div id="article-nav-newer" class="article-nav-title">
+                <a href="/2016/12/27/2016-12-27-ubuntu-mysql-install/">
+                    Ubuntu 安装 MySQL 简便方法
+                </a>
+            </div>
+        
+        
+            <div id="article-nav-older" class="article-nav-title">
+                <a href="/2016/12/25/2016-12-25-SAM-Format/">
+                    SAM 格式介绍
+                </a>
+            </div>
+        
+    </nav>
+
+  
+</article>
+
+    <div id="toc" class="toc-article">
+        <strong class="toc-title">文章目录</strong>
+        
+            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#TopHat如何寻找剪接点"><span class="toc-number">1.</span> <span class="toc-text">TopHat如何寻找剪接点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#使用TopHat"><span class="toc-number">2.</span> <span class="toc-text">使用TopHat</span></a></li></ol>
+        
+    </div>
+    <style>
+        .left-col .switch-btn,
+        .left-col .switch-area {
+            display: none;
+        }
+        .toc-level-3 i,
+        .toc-level-3 ol {
+            display: none !important;
+        }
+    </style>
+
+    <input type="button" id="tocButton" value="隐藏目录"  title="点击按钮隐藏或者显示文章目录">
+
+    <script>
+        yiliaConfig.toc = ["隐藏目录", "显示目录", !!"false"];
+    </script>
+
+
+
+    
+<div class="share">
+    
+        <div class="bdsharebuttonbox">
+            <a href="#" class="fa fa-twitter bds_twi" data-cmd="twi" title="分享到推特"></a>
+            <a href="#" class="fa fa-weibo bds_tsina" data-cmd="tsina" title="分享到新浪微博"></a>
+            <a href="#" class="fa fa-qq bds_sqq" data-cmd="sqq" title="分享给 QQ 好友"></a>
+            <a href="#" class="fa fa-files-o bds_copy" data-cmd="copy" title="复制网址"></a>
+            <a href="#" class="fa fa fa-envelope-o bds_mail" data-cmd="mail" title="通过邮件分享"></a>
+            <a href="#" class="fa fa-weixin bds_weixin" data-cmd="weixin" title="生成文章二维码"></a>
+            <a href="#" class="fa fa-share-alt bds_more" data-cmd="more"></i></a>
+        </div>
+        <script>
+            window._bd_share_config={
+                "common":{"bdSnsKey":{},"bdText":"TopHat使用方法　| Mao Yibo's Blog　","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"24"},"share":{}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+        </script>
+    
+
+    
+</div>
+
+
+
+
+
+
+
+    
+
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/2016/12/27/2016-12-27-ubuntu-mysql-install/" title="上一篇: Ubuntu 安装 MySQL 简便方法">
+                <i class="fa fa-angle-left"></i>
+            </a>
+        
+
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+
+        
+            <a href="/2016/12/25/2016-12-25-SAM-Format/" title="下一篇: SAM 格式介绍">
+                <i class="fa fa-angle-right"></i>
+            </a>
+        
+    </div>
+
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2016/12/28/2016-12-28-VCF-Format/">VCF 4.1版本 格式介绍</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/27/2016-12-27-ubuntu-mysql-install/">Ubuntu 安装 MySQL 简便方法</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/26/2016-12-26-tophat-useage/">TopHat使用方法</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/25/2016-12-25-SAM-Format/">SAM 格式介绍</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/24/2016-12-24-Bowtie2-useage/">使用 Bowtie2 将reads 比对到参考基因组</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/20/2016-12-20-NGS-Terminologies-and-Concepts/">NGS Terminologies and Concepts</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/13/2016-12-13-samtools-useage/">使用samtools发现SNPs</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/12/2016-12-12-bwa-useage/">使用 bwa 将 reads 比对到参考基因组</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/11/2016-12-11-MLF-1/">机器学习基石  第一节 The Learning Problem</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/10/2016-12-10-Ubuntu-Dependence-Installation/">Ubuntu Dependence Installation</a></li></ul>
+
+
+
+
+    <script>
+        
+    </script>
+</div>
+      <footer id="footer">
+    <div class="outer">
+        <div id="footer-info">
+            <div class="footer-left">
+                <i class="fa fa-copyright"></i> 
+                2016-2017 Mao Yibo
+            </div>
+            <div class="footer-right">
+                <a href="http://hexo.io/" target="_blank" title="快速、简洁且高效的博客框架">Hexo</a>  Theme <a href="https://github.com/MOxFIVE/hexo-theme-yelee" target="_blank" title="简而不减 Hexo 双栏博客主题  v3.5">Yelee</a> by MOxFIVE <i class="fa fa-heart animated infinite pulse"></i>
+            </div>
+        </div>
+        
+            <div class="visit">
+                
+                    <span id="busuanzi_container_site_pv" style='display:none'>
+                        <span id="site-visit" title="本站到访数"><i class="fa fa-user" aria-hidden="true"></i><span id="busuanzi_value_site_uv"></span>
+                        </span>
+                    </span>
+                
+                
+                    <span>| </span>
+                
+                
+                    <span id="busuanzi_container_page_pv" style='display:none'>
+                        <span id="page-visit"  title="本页阅读量"><i class="fa fa-eye animated infinite pulse" aria-hidden="true"></i><span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    </span>
+                
+            </div>
+        
+    </div>
+</footer>
+    </div>
+    
+<script data-main="/js/main.js" src="//cdn.bootcss.com/require.js/2.2.0/require.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var iPad = window.navigator.userAgent.indexOf('iPad');
+            if (iPad > -1 || $(".left-col").css("display") === "none") {
+                var bgColorList = ["#9db3f4", "#414141", "#e5a859", "#f5dfc6", "#c084a0", "#847e72", "#cd8390", "#996731"];
+                var bgColor = Math.ceil(Math.random() * (bgColorList.length - 1));
+                $("body").css({"background-color": bgColorList[bgColor], "background-size": "cover"});
+            }
+            else {
+                var backgroundnum = 5;
+                var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+                $("body").css({"background": backgroundimg, "background-attachment": "fixed", "background-size": "cover"});
+            }
+        })
+    </script>
+
+
+
+
+
+    <script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+    tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    }
+});
+
+MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for(i=0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';                 
+    }       
+});
+</script>
+
+<script src="//cdn.bootcss.com/mathjax/2.6.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<div class="scroll" id="scroll">
+    <a href="#" title="返回顶部"><i class="fa fa-arrow-up"></i></a>
+    <a href="#comments" onclick="load$hide();" title="查看评论"><i class="fa fa-comments-o"></i></a>
+    <a href="#footer" title="转到底部"><i class="fa fa-arrow-down"></i></a>
+</div>
+<script>
+    // Open in New Window
+    
+        var oOpenInNew = {
+            
+            
+            
+            
+            
+            
+             archives: ".archive-article-title", 
+             miniArchives: "a.post-list-link", 
+            
+             friends: "#js-friends a", 
+             socail: ".social a" 
+        }
+        for (var x in oOpenInNew) {
+            $(oOpenInNew[x]).attr("target", "_blank");
+        }
+    
+</script>
+
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+  </div>
+</body>
+</html>
